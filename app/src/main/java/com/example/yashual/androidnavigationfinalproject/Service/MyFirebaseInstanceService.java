@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import com.example.yashual.androidnavigationfinalproject.NavigationFromNotfication;
@@ -25,12 +26,12 @@ import java.util.Random;
  */
 
 public class MyFirebaseInstanceService extends FirebaseMessagingService {
-
+    private static final String TAG = MyFirebaseInstanceService.class.getSimpleName();
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage){
         super.onMessageReceived(remoteMessage);
-
+        Log.e(TAG, "onMessageReceived: Get Msg and remote"+remoteMessage.getData().isEmpty() );
         if(remoteMessage.getData().isEmpty())
         {
             showNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
@@ -44,12 +45,8 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
     }
 
     private void showNotification(Map<String, String> data){
-
-        String title = data.get("title").toString();
-        String body = data.get("body").toString();
-
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        String NOTIFICATION_CHANNEL_ID = "com.final_project_afeka.android_navigation_final_project.test";
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        String NOTIFICATION_CHANNEL_ID = "com.example.yashual.androidnavigationfinalproject";
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Notification",NotificationManager.IMPORTANCE_DEFAULT);
@@ -59,7 +56,7 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
             notificationChannel.setLightColor(Color.BLUE);
             notificationChannel.setVibrationPattern(new long[]{0,1000,500,1000});
             notificationChannel.enableLights(true);
-            notificationManager.createNotificationChannel(notificationChannel);
+//            notificationManager.createNotificationChannel(notificationChannel);
         }
 
 
@@ -67,6 +64,8 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
 
         // Create an Intent for the activity you want to start
         Intent resultIntent = new Intent(this, NavigationFromNotfication.class);
+//        resultIntent.putExtra("lat",data.get("lat"));
+//        resultIntent.putExtra("lan",data.get("lan"));
 //      Create the TaskStackBuilder and add the intent, which inflates the back stack
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addNextIntentWithParentStack(resultIntent);
@@ -77,14 +76,9 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
         notificationBuilder.setAutoCancel(true)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_close)
-                .setContentTitle(title)
-                .setContentText(body)
+                .setSmallIcon(R.drawable.ic_maneuver_fork_straight)
                 .setContentInfo("info")
-                .setContentIntent(resultPendingIntent).
-                setAutoCancel(true);
-
-
+                .setContentIntent(resultPendingIntent);
 
         notificationManager.notify(new Random().nextInt(),notificationBuilder.build());
 
@@ -92,8 +86,9 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
     }
 
     private void showNotification(String title, String body){
+        Log.e(TAG, "showNotification: 2");
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        String NOTIFICATION_CHANNEL_ID = "com.final_project_afeka.android_navigation_final_project.test";
+        String NOTIFICATION_CHANNEL_ID = "com.example.yashual.androidnavigationfinalproject";
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Notification",NotificationManager.IMPORTANCE_DEFAULT);
