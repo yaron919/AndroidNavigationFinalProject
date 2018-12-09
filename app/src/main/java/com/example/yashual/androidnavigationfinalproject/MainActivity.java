@@ -74,11 +74,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapboxMap.addOnMapClickListener(this);
         button = findViewById(R.id.startButton);
         button.setOnClickListener(v -> {
-            boolean simulateRoute = true;
+            boolean simulateRoute = false;
             NavigationLauncherOptions options = NavigationLauncherOptions.builder()
                     .directionsRoute(currentRoute)
                     .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
-                    .shouldSimulateRoute(false)
+                    .shouldSimulateRoute(simulateRoute)
                     .waynameChipEnabled(true)
                     .build();
             // Call this method with Context from within an Activity
