@@ -2,23 +2,39 @@ package com.example.yashual.androidnavigationfinalproject;
 
 
 import java.util.List;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEnginePriority;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.location.OnLocationClickListener;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 // classes needed to add the location component
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+
 import android.location.Location;
 import android.widget.Toast;
+
 import com.mapbox.mapboxsdk.geometry.LatLng;
+
 import android.support.annotation.NonNull;
+
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerOptions;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
@@ -30,12 +46,15 @@ import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 import android.util.Log;
 // classes needed to launch navigation UI
 import android.widget.Button;
+
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
@@ -70,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
         enableLocationComponent();
-        originCoord = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
         mapboxMap.addOnMapClickListener(this);
         button = findViewById(R.id.startButton);
         button.setOnClickListener(v -> {
@@ -87,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onMapClick(@NonNull LatLng point){
+    public void onMapClick(@NonNull LatLng point) {
         if (destinationMarker != null) {
             mapboxMap.removeMarker(destinationMarker);
         }
@@ -96,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(destinationCoord)
         );
         destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
-        originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
+        originPosition = Point.fromLngLat(originLocation.getLongitude(), originLocation.getLatitude());
         getRoute(originPosition, destinationPosition);
         button.setEnabled(true);
         button.setBackgroundResource(R.color.mapboxGrayLight);
@@ -139,7 +157,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 });
     }
-    @SuppressWarnings( {"MissingPermission"})
+
+    @SuppressWarnings({"MissingPermission"})
     private void enableLocationComponent() {
         // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
@@ -152,8 +171,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationComponent.setRenderMode(RenderMode.COMPASS);
             // Set the component's camera mode
             locationComponent.setCameraMode(CameraMode.TRACKING);
-            originLocation = locationComponent.getLastKnownLocation();
 
+            this.originLocation = getLastBestLocation();
+            if (this.originLocation == null)
+            this.originLocation = locationComponent.getLastKnownLocation();
+            Log.d(TAG, "enableLocationComponent: originLocation: "+originLocation.getLongitude()+" "+originLocation.getLatitude());
+            changeCameraLocation(this.originLocation);
         } else {
             permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
@@ -220,6 +243,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
+    }
+
+    private Location getLastBestLocation() {
+        LocationManager mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG,"No GPS - Turn on");
+        }
+        Location locationGPS = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location locationNet = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        long GPSLocationTime = 0;
+        if (null != locationGPS) { GPSLocationTime = locationGPS.getTime(); }
+
+        long NetLocationTime = 0;
+
+        if (null != locationNet) {
+            NetLocationTime = locationNet.getTime();
+        }
+
+        if ( 0 < GPSLocationTime - NetLocationTime ) {
+            return locationGPS;
+        }
+        else {
+            return locationNet;
+        }
+    }
+
+    private void changeCameraLocation(Location location){
+        CameraPosition position = new CameraPosition.Builder()
+                .target(new LatLng(location.getLatitude(), location.getLongitude())) // Sets the new camera position
+                .zoom(19) // Sets the zoom
+                .bearing(180) // Rotate the camera
+                .tilt(30) // Set the camera tilt
+                .build(); // Creates a CameraPosition from the builder
+
+        mapboxMap.animateCamera(CameraUpdateFactory
+                .newCameraPosition(position), 7000);
     }
 }
 

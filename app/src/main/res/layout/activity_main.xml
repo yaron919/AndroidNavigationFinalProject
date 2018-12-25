@@ -15,10 +15,12 @@
         mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10"
         mapbox:mapbox_cameraZoom="20" >
 
+
         <Button
             android:id="@+id/startButton"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="80dp"
             android:text="Button" />
     </com.mapbox.mapboxsdk.maps.MapView>
 

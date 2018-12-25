@@ -2,8 +2,13 @@ package com.example.yashual.androidnavigationfinalproject;
 
 import java.util.List;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
 import com.mapbox.api.directions.v5.DirectionsCriteria;
@@ -15,6 +20,7 @@ import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import android.location.Location;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import android.support.annotation.NonNull;
@@ -47,8 +53,6 @@ public class NavigationFromNotfication extends AppCompatActivity implements OnMa
     private PermissionsManager permissionsManager;
     private Location originLocation;
     // variables for adding a marker
-    private Marker destinationMarker;
-    private LatLng originCoord;
     private LatLng destinationCoord;
     // variables for calculating and drawing a route
     private Point originPosition;
@@ -56,76 +60,59 @@ public class NavigationFromNotfication extends AppCompatActivity implements OnMa
     private DirectionsRoute currentRoute;
     private static final String TAG = "DirectionsActivity";
     private NavigationMapRoute navigationMapRoute;
-    private Button button;
+    private boolean getRouteFinish = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "enter onCreate() ");
         super.onCreate(savedInstanceState);
         Intent recIntent = this.getIntent();
-        destinationCoord = new LatLng(recIntent.getDoubleExtra("lat",23.23),recIntent.getDoubleExtra("lan",23.23));
-        Mapbox.getInstance(this, getString(R.string.access_token));
-        setContentView(R.layout.activity_main);
-        mapView = findViewById(R.id.mapView);
+        double lat = Double.parseDouble(recIntent.getStringExtra("lat"));
+        double lan = Double.parseDouble(recIntent.getStringExtra("lan"));
+        destinationCoord = new LatLng(lat,lan);
+        Mapbox.getInstance(this, getString(R.string.access_token_notification));
+        setContentView(R.layout.activity_navigation_from_notfication);
+        mapView = findViewById(R.id.mapView2);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
+        Log.d(TAG, "enter onMapReady ("+mapboxMap+")");
         this.mapboxMap = mapboxMap;
         enableLocationComponent();
-//        originCoord = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
-//        destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
-//        boolean simulateRoute = false;
-//        getRoute(originPosition,destinationPosition);
-//        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-//                .directionsRoute(currentRoute)
-//                .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
-//                .shouldSimulateRoute(simulateRoute)
-//                .waynameChipEnabled(true)
-//                .build();
-//        // Call this method with Context from within an Activity
-//        NavigationLauncher.startNavigation(NavigationFromNotfication.this, options);
+        // define destination and origin
+        destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
+        originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+        getRoute(originPosition,destinationPosition);
     }
 
-//    @Override
-//    public void onMapClick(@NonNull LatLng point){
-//        if (destinationMarker != null) {
-//            mapboxMap.removeMarker(destinationMarker);
-//        }
-//        destinationCoord = point;
-//        destinationMarker = mapboxMap.addMarker(new MarkerOptions()
-//                .position(destinationCoord)
-//        );
-//        destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
-//        originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-//        getRoute(originPosition, destinationPosition);
-//        button.setEnabled(true);
-//        button.setBackgroundResource(R.color.mapboxGrayLight);
-//    }
-
     private void getRoute(Point origin, Point destination) {
+        Log.d(TAG, "getRoute: enter to getRoute");
+        Log.d(TAG, "getRoute: origin lat:"+origin.latitude()+" lan:"+origin.longitude());
+        Log.d(TAG, "getRoute: destination lat:"+destination.latitude()+" lan:"+destination.longitude());
         NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
                 .origin(origin)
-                .profile(DirectionsCriteria.PROFILE_WALKING)
                 .destination(destination)
+                .profile(DirectionsCriteria.PROFILE_WALKING)
                 .build()
                 .getRoute(new Callback<DirectionsResponse>() {
                     @Override
                     public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
                         // You can get the generic HTTP info about the response
-                        Log.d(TAG, "Response code: " + response.code());
+                        Log.d(TAG, "getRoute: Response code: " + response.code());
                         if (response.body() == null) {
-                            Log.e(TAG, "No routes found, make sure you set the right user and access token.");
+                            Log.e(TAG, "getRoute: No routes found, make sure you set the right user and access token.");
                             return;
                         } else if (response.body().routes().size() < 1) {
-                            Log.e(TAG, "No routes found");
+                            Log.e(TAG, "getRoute: No routes found");
                             return;
                         }
+                        Log.e(TAG, "onResponse: "+response.body().routes().get(0));
 
                         currentRoute = response.body().routes().get(0);
-
                         // Draw the route on the map
                         if (navigationMapRoute != null) {
                             navigationMapRoute.removeRoute();
@@ -133,13 +120,25 @@ public class NavigationFromNotfication extends AppCompatActivity implements OnMa
                             navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
                         }
                         navigationMapRoute.addRoute(currentRoute);
+                        navigationLauncherStart();
                     }
 
                     @Override
                     public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: " + throwable.getMessage());
+                        Log.e(TAG, "getRoute: Error: " + throwable.getMessage());
                     }
                 });
+        Log.d(TAG, "getRoute: finish getRoute");
+    }
+    private void navigationLauncherStart(){
+        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                .directionsRoute(currentRoute)
+                .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
+//                      .shouldSimulateRoute(simulateRoute)
+                .waynameChipEnabled(true)
+                .build();
+        // Call this method with Context from within an Activity
+        NavigationLauncher.startNavigation(NavigationFromNotfication.this, options);
     }
     @SuppressWarnings( {"MissingPermission"})
     private void enableLocationComponent() {
@@ -154,7 +153,10 @@ public class NavigationFromNotfication extends AppCompatActivity implements OnMa
             locationComponent.setRenderMode(RenderMode.COMPASS);
             // Set the component's camera mode
             locationComponent.setCameraMode(CameraMode.TRACKING);
-            originLocation = locationComponent.getLastKnownLocation();
+
+            originLocation = getLastBestLocation();
+            if (originLocation == null)
+                originLocation = locationComponent.getLastKnownLocation();
 
         } else {
             permissionsManager = new PermissionsManager(this);
@@ -222,5 +224,31 @@ public class NavigationFromNotfication extends AppCompatActivity implements OnMa
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
+    }
+    private Location getLastBestLocation() {
+        Log.d(TAG, "getLastBestLocation: Start");
+        LocationManager mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG,"No GPS - Turn on");
+        }
+        Location locationGPS = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location locationNet = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        long GPSLocationTime = 0;
+        if (null != locationGPS) { GPSLocationTime = locationGPS.getTime(); }
+
+        long NetLocationTime = 0;
+
+        if (null != locationNet) {
+            NetLocationTime = locationNet.getTime();
+        }
+
+        if ( 0 < GPSLocationTime - NetLocationTime ) {
+            Log.d(TAG, "getLastBestLocation: locationGPS: "+ locationGPS.getLatitude()+" lan:"+locationGPS.getLongitude());
+            return locationGPS;
+        }
+        else {
+            return locationNet;
+        }
     }
 }

@@ -31,7 +31,7 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage){
         super.onMessageReceived(remoteMessage);
-        Log.e(TAG, "onMessageReceived: Get Msg and remote"+remoteMessage.getData().isEmpty() );
+        Log.e(TAG, "onMessageReceived: Get Msg and remote "+remoteMessage.getData().isEmpty() );
         if(remoteMessage.getData().isEmpty())
         {
             showNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
@@ -45,40 +45,42 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
     }
 
     private void showNotification(Map<String, String> data){
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        String NOTIFICATION_CHANNEL_ID = "com.example.yashual.androidnavigationfinalproject";
+        Log.e(TAG, "showNotification: 1");
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        String NOTIFICATION_CHANNEL_ID = "com.example.yashual.androidnavigationfinalproject.test";
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Notification",NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Notification",
+                    NotificationManager.IMPORTANCE_DEFAULT);
 
             notificationChannel.setDescription("Missiles Channel");
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.BLUE);
             notificationChannel.setVibrationPattern(new long[]{0,1000,500,1000});
             notificationChannel.enableLights(true);
-//            notificationManager.createNotificationChannel(notificationChannel);
+            notificationManager.createNotificationChannel(notificationChannel);
         }
 
 
-        //Set Intent
 
         // Create an Intent for the activity you want to start
         Intent resultIntent = new Intent(this, NavigationFromNotfication.class);
-//        resultIntent.putExtra("lat",data.get("lat"));
-//        resultIntent.putExtra("lan",data.get("lan"));
+        resultIntent.putExtra("lat",data.get("lat"));
+        resultIntent.putExtra("lan",data.get("lan"));
 //      Create the TaskStackBuilder and add the intent, which inflates the back stack
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntentWithParentStack(resultIntent);
+        stackBuilder.addNextIntent(resultIntent);
 //      Get the PendingIntent containing the entire back stack
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
+//create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,NOTIFICATION_CHANNEL_ID);
         notificationBuilder.setAutoCancel(true)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_maneuver_fork_straight)
+                .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark_focused)
                 .setContentInfo("info")
-                .setContentIntent(resultPendingIntent);
+                .setContentIntent(resultPendingIntent)
+                .setAutoCancel(true);
 
         notificationManager.notify(new Random().nextInt(),notificationBuilder.build());
 
@@ -88,10 +90,11 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
     private void showNotification(String title, String body){
         Log.e(TAG, "showNotification: 2");
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        String NOTIFICATION_CHANNEL_ID = "com.example.yashual.androidnavigationfinalproject";
+        String NOTIFICATION_CHANNEL_ID = "com.example.yashual.androidnavigationfinalproject.test";
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Notification",NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Notification",
+                    NotificationManager.IMPORTANCE_DEFAULT);
 
             notificationChannel.setDescription("Missiles Channel");
             notificationChannel.enableLights(true);
@@ -118,9 +121,9 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
                 .setSmallIcon(R.drawable.ic_close)
                 .setContentTitle(title)
                 .setContentText(body)
-                .setContentInfo("info").
-                setContentIntent(resultPendingIntent).
-                setAutoCancel(true);
+                .setContentInfo("info")
+                .setContentIntent(resultPendingIntent)
+                .setAutoCancel(true);
 
         notificationManager.notify(new Random().nextInt(),notificationBuilder.build());
 
