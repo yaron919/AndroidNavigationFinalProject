@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkIntent();
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
         mapView = findViewById(R.id.mapView);
@@ -94,9 +93,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
             Log.d(TAG, " "+lat+"  "+lan);
             destinationCoord = new LatLng(lat,lan);
-            enableLocationComponent();
             destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
-            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+            originPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
             getRoute(originPosition,destinationPosition);
 
         }
@@ -132,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Call this method with Context from within an Activity
             NavigationLauncher.startNavigation(MainActivity.this, options);
         });
+        checkIntent();
     }
 
     @Override
