@@ -27,6 +27,7 @@ import android.support.annotation.NonNull;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
+import com.mapbox.services.android.navigation.ui.v5.map.NavigationMapboxMap;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 // classes needed to add a marker
@@ -35,6 +36,7 @@ import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 // classes to calculate a route
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
+import com.mapbox.services.android.navigation.ui.v5.NavigationView;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import retrofit2.Call;
@@ -54,6 +56,7 @@ public class NavigationFromNotfication extends AppCompatActivity implements OnMa
     private Location originLocation;
     // variables for adding a marker
     private LatLng destinationCoord;
+    private NavigationView navigationView;
     // variables for calculating and drawing a route
     private Point originPosition;
     private Point destinationPosition;
@@ -131,14 +134,16 @@ public class NavigationFromNotfication extends AppCompatActivity implements OnMa
         Log.d(TAG, "getRoute: finish getRoute");
     }
     private void navigationLauncherStart(){
+        Log.e(TAG, "navigationLauncherStart: start" );
         NavigationLauncherOptions options = NavigationLauncherOptions.builder()
                 .directionsRoute(currentRoute)
                 .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
-//                      .shouldSimulateRoute(simulateRoute)
+                .shouldSimulateRoute(false)
                 .waynameChipEnabled(true)
                 .build();
+        Log.e(TAG, "navigationLauncherStart: before luncher" );
         // Call this method with Context from within an Activity
-        NavigationLauncher.startNavigation(NavigationFromNotfication.this, options);
+        NavigationLauncher.startNavigation(this, options);
     }
     @SuppressWarnings( {"MissingPermission"})
     private void enableLocationComponent() {
