@@ -78,11 +78,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkIntent();
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+    }
+
+    public void checkIntent(){
+        if (getIntent().getExtras() != null) {
+            Log.d(TAG, "i got an intent");
+            Object value ;
+            double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
+            double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
+            Log.d(TAG, " "+lat+"  "+lan);
+            destinationCoord = new LatLng(lat,lan);
+            enableLocationComponent();
+            destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
+            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+            getRoute(originPosition,destinationPosition);
+
+        }
+    }
+
+    private void navigationLauncherStart(){
+        Log.e(TAG, "navigationLauncherStart: start" );
+        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                .directionsRoute(currentRoute)
+                .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
+                .shouldSimulateRoute(false)
+                .waynameChipEnabled(true)
+                .build();
+        Log.e(TAG, "navigationLauncherStart: before luncher" );
+        // Call this method with Context from within an Activity
+        NavigationLauncher.startNavigation(this, options);
     }
 
     @Override
@@ -149,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
                         }
                         navigationMapRoute.addRoute(currentRoute);
+                        navigationLauncherStart();
                     }
 
                     @Override
