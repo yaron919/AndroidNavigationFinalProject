@@ -1,6 +1,7 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.Manifest;
@@ -11,22 +12,14 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
-import com.mapbox.android.core.location.LocationEngine;
-import com.mapbox.android.core.location.LocationEnginePriority;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.location.OnLocationClickListener;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
-// classes needed to add the location component
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -40,7 +33,6 @@ import android.support.annotation.NonNull;
 
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
-//import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerOptions;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
@@ -63,10 +55,6 @@ import android.widget.Button;
 
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
     private MapView mapView;
     // variables for adding location layer
@@ -84,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = "DirectionsActivity";
     private NavigationMapRoute navigationMapRoute;
     private Button button;
-    private RequestQueue mQueue;
+    private ConnectionServer connectionServer;
 
 
     @Override
@@ -95,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
-        ConnectionServer connectionServer = new ConnectionServer(this);
+        this.connectionServer = new ConnectionServer(this);
         connectionServer.jsonParse();
     }
     public void checkIntent(){
@@ -143,6 +131,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             NavigationLauncher.startNavigation(MainActivity.this, options);
         });
         checkIntent();
+        connectionServer.getSafeLocation();
+    }
+
+    public void addSafeMarkerOnMap(List<LatLng> list) {
+        Log.d(TAG, "addSafeMarkerOnMap: list:"+list.toString());
+        for (LatLng latLng : list) {
+            mapboxMap.addMarker(new MarkerOptions()
+                                 .position(latLng));
+        }
     }
 
     @Override
@@ -216,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             this.originLocation = getLastBestLocation();
             if (this.originLocation == null)
-            this.originLocation = locationComponent.getLastKnownLocation();
+                this.originLocation = locationComponent.getLastKnownLocation();
             Log.d(TAG, "enableLocationComponent: originLocation: "+originLocation.getLongitude()+" "+originLocation.getLatitude());
             changeCameraLocation(this.originLocation);
         } else {
