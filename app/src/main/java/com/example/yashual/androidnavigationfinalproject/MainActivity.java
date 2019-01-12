@@ -94,9 +94,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d(TAG, " "+lat+"  "+lan);
             destinationCoord = new LatLng(lat,lan);
             destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
-            originPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
+            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
             getRoute(originPosition,destinationPosition);
-
         }
     }
 
