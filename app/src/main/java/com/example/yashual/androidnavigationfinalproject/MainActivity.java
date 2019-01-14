@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
@@ -25,6 +27,10 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import android.location.Location;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.PopupMenu;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -51,7 +57,6 @@ import retrofit2.Response;
 
 import android.util.Log;
 // classes needed to launch navigation UI
-import android.widget.Button;
 
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
@@ -71,9 +76,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DirectionsRoute currentRoute;
     private static final String TAG = "DirectionsActivity";
     private NavigationMapRoute navigationMapRoute;
-    private Button button;
     private ConnectionServer connectionServer;
-
+    private FloatingActionButton settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,21 +87,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+        settings = findViewById(R.id.settingButton);
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PopupMenu popupMenu = new PopupMenu(MainActivity.this,settings);
+                popupMenu.getMenuInflater().inflate(R.menu.popup_menu,popupMenu.getMenu());
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem menuItem) {
+                        switch(menuItem.getOrder()){
+                            case 0:
+                                Toast.makeText(getApplicationContext(), "StartActiviy 0", Toast.LENGTH_SHORT).show();
+                                return true;
+                            case 1:
+                                Toast.makeText(getApplicationContext(), "StartActiviy 1", Toast.LENGTH_SHORT).show();
+                                return true;
+
+                            default:
+                                return true;
+                        }
+                    }
+                });
+
+                popupMenu.show();
+
+            }
+        });
         this.connectionServer = new ConnectionServer(this);
         connectionServer.jsonParse();
-    }
-    public void checkIntent(){
-        if (getIntent().getExtras() != null) {
-            Log.d(TAG, "i got an intent");
-            Object value ;
-            double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
-            double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
-            Log.d(TAG, " "+lat+"  "+lan);
-            destinationCoord = new LatLng(lat,lan);
-            destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
-            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-            getRoute(originPosition,destinationPosition);
-        }
     }
 
     private void navigationLauncherStart(){
@@ -118,18 +136,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.mapboxMap = mapboxMap;
         enableLocationComponent();
         mapboxMap.addOnMapClickListener(this);
-        button = findViewById(R.id.startButton);
-        button.setOnClickListener(v -> {
-            boolean simulateRoute = false;
-            NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                    .directionsRoute(currentRoute)
-                    .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
-                    .shouldSimulateRoute(simulateRoute)
-                    .waynameChipEnabled(true)
-                    .build();
-            // Call this method with Context from within an Activity
-            NavigationLauncher.startNavigation(MainActivity.this, options);
-        });
         checkIntent();
         connectionServer.getSafeLocation();
     }
@@ -139,6 +145,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         for (LatLng latLng : list) {
             mapboxMap.addMarker(new MarkerOptions()
                                  .position(latLng));
+        }
+    }
+
+    public void checkIntent(){
+        if (getIntent().getExtras() != null) {
+            Log.d(TAG, "i got an intent");
+            Object value ;
+            double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
+            double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
+            Log.d(TAG, " "+lat+"  "+lan);
+            destinationCoord = new LatLng(lat,lan);
+            destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
+            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+            getRoute(originPosition,destinationPosition);
         }
     }
 
@@ -154,8 +174,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
         originPosition = Point.fromLngLat(originLocation.getLongitude(), originLocation.getLatitude());
         getRoute(originPosition, destinationPosition);
-        button.setEnabled(true);
-        button.setBackgroundResource(R.color.mapboxGrayLight);
     }
 
     private void getRoute(Point origin, Point destination) {

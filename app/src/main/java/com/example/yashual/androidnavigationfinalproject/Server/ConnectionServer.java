@@ -34,7 +34,7 @@ public class ConnectionServer  {
     }
 
     public void jsonParse() {
-        String url = "https://api.myjson.com/bins/smgq0";
+        String url = "https://api.myjson.com/bins/14ps0o";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
@@ -57,9 +57,8 @@ public class ConnectionServer  {
     }
 
     public void getSafeLocation(){
-        String url = "https://api.myjson.com/bins/ng7h4";
-
-
+        String url = "https://api.myjson.com/bins/14ps0o";
+        
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
