@@ -101,7 +101,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 Toast.makeText(getApplicationContext(), "StartActiviy 0", Toast.LENGTH_SHORT).show();
                                 return true;
                             case 1:
-                                Toast.makeText(getApplicationContext(), "StartActiviy 1", Toast.LENGTH_SHORT).show();
+                                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude()); // get origin
+                                getRoute(originPosition, originPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
                                 return true;
 
                             default:
