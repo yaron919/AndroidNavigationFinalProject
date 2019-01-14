@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         this.connectionServer = new ConnectionServer(this);
-        connectionServer.jsonParse();
+
     }
 
     private void navigationLauncherStart(){
