@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 Toast.makeText(getApplicationContext(), "StartActiviy 0", Toast.LENGTH_SHORT).show();
                                 return true;
                             case 1:
-                                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude()); // get origin
+                                 // get origin
                                 getRoute(originPosition, originPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
                                 return true;
 
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
-        this.connectionServer = new ConnectionServer(this);
+        this.connectionServer = new ConnectionServer(this,32.4279264,34.9112669);
 
     }
 

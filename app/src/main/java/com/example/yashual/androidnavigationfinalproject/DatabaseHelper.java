@@ -8,6 +8,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.mapbox.mapboxsdk.geometry.LatLng;
+
+import java.util.ArrayList;
+
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -105,30 +109,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return newPoint;
     }
 
-    public void getPointsNear(Point center){
-        final double mult = 1.1; // mult = 1.1; is more reliable
-        final double radius =300; // distance from point
+    public ArrayList<LatLng>  getPointsNear(Point center){
+        // get all points with a 300 m radius from the user
+        ArrayList <LatLng> rv = new ArrayList<>();
+        final double mult = 1; // mult = 1.1; is more reliable
+        final double radius =400; // distance from point
         Point p1 = calculateDerivedPosition(center, mult * radius, 0);
         Point p2 = calculateDerivedPosition(center, mult * radius, 90);
         Point p3 = calculateDerivedPosition(center, mult * radius, 180);
         Point p4 = calculateDerivedPosition(center, mult * radius, 270);
         SQLiteDatabase db = this.getWritableDatabase();
         String strWhere =  " WHERE "
-                + center.getLat() + " > " + String.valueOf(p3.getLat()) + " AND "
-                + center.getLat() + " < " + String.valueOf(p1.getLat()) + " AND "
-                + center.getLan() + " < " + String.valueOf(p2.getLan()) + " AND "
-                + center.getLan() + " > " + String.valueOf(p4.getLan());
+                + "lat > " + String.valueOf(p3.getLat()) + " AND "
+                + "lat < " + String.valueOf(p1.getLat()) + " AND "
+                + "lan < " + String.valueOf(p2.getLan()) + " AND "
+                + "lan > " + String.valueOf(p4.getLan());
 
         Log.e(TAG, "where : "+strWhere);
-
-
         String query = "SELECT * FROM "+TABLE_NAME+strWhere;
         Cursor safePlacesNear = db.rawQuery(query,null);
-
         while(safePlacesNear.moveToNext()){
+            rv.add(new LatLng(safePlacesNear.getDouble(1), safePlacesNear.getDouble(2)));
             Log.e(TAG, "points near are : "+safePlacesNear.getInt(0));
         }
-
+        return rv;
     }
 
 

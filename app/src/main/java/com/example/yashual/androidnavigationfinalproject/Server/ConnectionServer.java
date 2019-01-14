@@ -29,11 +29,15 @@ public class ConnectionServer  {
     private RequestQueue mQueue;
     private MainActivity mainActivity;
     private DatabaseHelper mDatabaseHelper;
+    private Point originPosition;
 
-    public ConnectionServer (Context context){
+
+    public ConnectionServer (Context context, double lat, double lan){
         mQueue = Volley.newRequestQueue(context);
         this.mainActivity = (MainActivity) context;
         mDatabaseHelper = new DatabaseHelper(context);
+        this.originPosition = new Point(lat,lan);
+
     }
 
     public void getSafeLocation(){
@@ -44,14 +48,12 @@ public class ConnectionServer  {
             public void onResponse(JSONObject response) {
                 try {
                     JSONArray jsonArray = response.getJSONArray("locations");
-                    ArrayList <LatLng> rv = new ArrayList<>();
+                    ArrayList <LatLng> rv;
                     for (int i=0; i< jsonArray.length(); i++) {
                         JSONObject latlan = jsonArray.getJSONObject(i);
                         mDatabaseHelper.addData(latlan.getDouble("lat"),latlan.getDouble("lan")); // adding points to local db
-                        rv.add(new LatLng(latlan.getDouble("lat"), latlan.getDouble("lan"))); // this list will be changed
                     }
-                   // Point p = new Point(rv.get(0).getLatitude(),rv.get(0).getLongitude());
-                  //  mDatabaseHelper.getPointsNear(p); // we are going to get the points to show to the user here
+                    rv = mDatabaseHelper.getPointsNear(originPosition); // get points from db
                     mainActivity.addSafeMarkerOnMap(rv);
                 } catch (JSONException e) {
                     e.printStackTrace();
