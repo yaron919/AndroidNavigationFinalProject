@@ -32,16 +32,16 @@ public class ConnectionServer  {
     private Point originPosition;
 
 
-    public ConnectionServer (Context context, double lat, double lan){
+    public ConnectionServer (Context context){
         mQueue = Volley.newRequestQueue(context);
         this.mainActivity = (MainActivity) context;
         mDatabaseHelper = new DatabaseHelper(context);
-        this.originPosition = new Point(lat,lan);
 
     }
 
-    public void getSafeLocation(){
-        String url = "https://api.myjson.com/bins/ng7h4";
+    public void getSafeLocation(double lat, double lan){
+        this.originPosition = new Point(lat,lan);
+        String url = "https://api.myjson.com/bins/dqf1c";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
@@ -53,6 +53,7 @@ public class ConnectionServer  {
                         JSONObject latlan = jsonArray.getJSONObject(i);
                         mDatabaseHelper.addData(latlan.getDouble("lat"),latlan.getDouble("lan")); // adding points to local db
                     }
+                    Log.e(TAG, "onResponse: before show safe location");
                     rv = mDatabaseHelper.getPointsNear(originPosition); // get points from db
                     mainActivity.addSafeMarkerOnMap(rv);
                 } catch (JSONException e) {

@@ -9,8 +9,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import timber.log.Timber;
-
 public class LoactionService extends Service {
     private static final String TAG = "BOOMBOOMTESTGPS";
     private LocationManager mLocationManager = null;

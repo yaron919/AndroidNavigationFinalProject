@@ -1,7 +1,6 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.Manifest;
@@ -10,11 +9,9 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
-import com.android.volley.RequestQueue;
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -30,7 +27,6 @@ import android.location.Location;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -104,18 +100,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                  // get origin
                                 getRoute(originPosition, originPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
                                 return true;
-
                             default:
                                 return true;
                         }
                     }
                 });
-
                 popupMenu.show();
-
             }
         });
-        this.connectionServer = new ConnectionServer(this,32.4279264,34.9112669);
+        this.connectionServer = new ConnectionServer(this);
 
     }
 
@@ -138,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         enableLocationComponent();
         mapboxMap.addOnMapClickListener(this);
         checkIntent();
-        connectionServer.getSafeLocation();
+        connectionServer.getSafeLocation(this.originLocation.getLatitude(), this.originLocation.getLongitude());
     }
 
     public void addSafeMarkerOnMap(List<LatLng> list) {
