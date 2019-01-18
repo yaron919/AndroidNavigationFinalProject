@@ -38,7 +38,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "Creating DB "+TABLE_NAME);
         String createTable = "CREATE TABLE "+TABLE_NAME+" (ID INTEGER PRIMARY KEY AUTOINCREMENT, "+COL1+" REAL, "+COL2+" REAL)";
         db.execSQL(createTable);
-
     }
 
 
