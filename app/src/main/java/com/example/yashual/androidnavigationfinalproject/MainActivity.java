@@ -13,6 +13,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
+import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -56,7 +57,7 @@ import android.util.Log;
 
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
     private MapView mapView;
     // variables for adding location layer
     private MapboxMap mapboxMap;
@@ -64,8 +65,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location originLocation;
     // variables for adding a marker
     private Marker destinationMarker;
-    private LatLng originCoord;
-    private LatLng destinationCoord;
     // variables for calculating and drawing a route
     private Point originPosition;
     private Point destinationPosition;
@@ -74,12 +73,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private NavigationMapRoute navigationMapRoute;
     private ConnectionServer connectionServer;
     private FloatingActionButton settings;
+    private DatabaseHelper databaseHelper;
+    private List<LatLng> safeList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
+        this.databaseHelper = new DatabaseHelper(this);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -98,7 +100,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return true;
                             case 1:
                                  // get origin
-                                getRoute(originPosition, originPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
+                                SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList);
+                                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+                                destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
+                                getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
                                 return true;
                             default:
                                 return true;
@@ -129,13 +134,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
         enableLocationComponent();
-        mapboxMap.addOnMapClickListener(this);
         checkIntent();
         connectionServer.getSafeLocation(this.originLocation.getLatitude(), this.originLocation.getLongitude());
     }
 
     public void addSafeMarkerOnMap(List<LatLng> list) {
         Log.d(TAG, "addSafeMarkerOnMap: list:"+list.toString());
+        this.safeList = list;
         for (LatLng latLng : list) {
             mapboxMap.addMarker(new MarkerOptions()
                                  .position(latLng));
@@ -149,25 +154,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
             double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
             Log.d(TAG, " "+lat+"  "+lan);
-            destinationCoord = new LatLng(lat,lan);
-            destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(),destinationCoord.getLatitude());
+            destinationPosition = Point.fromLngLat(lat,lan);
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
             getRoute(originPosition,destinationPosition);
         }
-    }
-
-    @Override
-    public void onMapClick(@NonNull LatLng point) {
-        if (destinationMarker != null) {
-            mapboxMap.removeMarker(destinationMarker);
-        }
-        destinationCoord = point;
-        destinationMarker = mapboxMap.addMarker(new MarkerOptions()
-                .position(destinationCoord)
-        );
-        destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
-        originPosition = Point.fromLngLat(originLocation.getLongitude(), originLocation.getLatitude());
-        getRoute(originPosition, destinationPosition);
     }
 
     private void getRoute(Point origin, Point destination) {

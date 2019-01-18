@@ -1,21 +1,16 @@
 package com.example.yashual.androidnavigationfinalproject.Server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.yashual.androidnavigationfinalproject.DatabaseHelper;
+import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.MainActivity;
-import com.example.yashual.androidnavigationfinalproject.Point;
-import com.google.gson.JsonObject;
-import com.mapbox.mapboxsdk.Mapbox;
+import com.example.yashual.androidnavigationfinalproject.SafePoint;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import org.json.JSONArray;
@@ -29,7 +24,7 @@ public class ConnectionServer  {
     private RequestQueue mQueue;
     private MainActivity mainActivity;
     private DatabaseHelper mDatabaseHelper;
-    private Point originPosition;
+    private SafePoint originPosition;
 
 
     public ConnectionServer (Context context){
@@ -40,7 +35,7 @@ public class ConnectionServer  {
     }
 
     public void getSafeLocation(double lat, double lan){
-        this.originPosition = new Point(lat,lan);
+        this.originPosition = new SafePoint(lat,lan);
         String url = "https://api.myjson.com/bins/dqf1c";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new com.android.volley.Response.Listener<JSONObject>() {

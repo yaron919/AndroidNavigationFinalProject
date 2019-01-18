@@ -13,7 +13,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
-import com.example.yashual.androidnavigationfinalproject.NavigationFromNotfication;
+import com.example.yashual.androidnavigationfinalproject.MainActivity;
 import com.example.yashual.androidnavigationfinalproject.R;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -64,7 +64,7 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
 
 
         // Create an Intent for the activity you want to start
-        Intent resultIntent = new Intent(this, NavigationFromNotfication.class);
+        Intent resultIntent = new Intent(this, MainActivity.class);
         resultIntent.putExtra("lat",data.get("lat"));
         resultIntent.putExtra("lan",data.get("lan"));
 //      Create the TaskStackBuilder and add the intent, which inflates the back stack
@@ -106,7 +106,7 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
 
         //Set Intent
         // Create an Intent for the activity you want to start
-        Intent resultIntent = new Intent(this, NavigationFromNotfication.class);
+        Intent resultIntent = new Intent(this, MainActivity.class);
 //      Create the TaskStackBuilder and add the intent, which inflates the back stack
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addNextIntentWithParentStack(resultIntent);

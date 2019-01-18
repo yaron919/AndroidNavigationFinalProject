@@ -1,11 +1,11 @@
 package com.example.yashual.androidnavigationfinalproject;
 
-public class Point {
+public class SafePoint {
 
     private double lat;
     private double lan;
 
-    public Point(Double lat, Double lan){
+    public SafePoint(Double lat, Double lan){
         this.lat = lat;
         this.lan = lan;
     }

@@ -1,16 +1,17 @@
-package com.example.yashual.androidnavigationfinalproject;
+package com.example.yashual.androidnavigationfinalproject.Service;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.yashual.androidnavigationfinalproject.SafePoint;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -61,32 +62,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public Cursor getNearestSafeLocation(){
-        Cursor data = null;
-        return data;
-    }
-
-
     /**
-     * Calculates the end-point from a given source at a given range (meters)
+     * Calculates the end-safePoint from a given source at a given range (meters)
      * and bearing (degrees). This methods uses simple geometry equations to
-     * calculate the end-point.
+     * calculate the end-safePoint.
      *
-     * @param point
-     *           Point of origin
+     * @param safePoint
+     *           SafePoint of origin
      * @param range
      *           Range in meters
      * @param bearing
      *           Bearing in degrees
-     * @return End-point from the source given the desired range and bearing.
+     * @return End-safePoint from the source given the desired range and bearing.
      */
-    public static Point calculateDerivedPosition(Point point,
-                                                  double range, double bearing)
+    public static SafePoint calculateDerivedPosition(SafePoint safePoint,
+                                                     double range, double bearing)
     {
         double EarthRadius = 6371000; // m
         double latA;
-        latA = Math.toRadians(point.getLat());
-        double lonA = Math.toRadians(point.getLan());
+        latA = Math.toRadians(safePoint.getLat());
+        double lonA = Math.toRadians(safePoint.getLan());
         double angularDistance = range / EarthRadius;
         double trueCourse = Math.toRadians(bearing);
 
@@ -105,19 +100,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         lat = Math.toDegrees(lat);
         lon = Math.toDegrees(lon);
 
-        Point newPoint = new Point((double) lat, (double) lon);
-        return newPoint;
+        SafePoint newSafePoint = new SafePoint((double) lat, (double) lon);
+        return newSafePoint;
     }
 
-    public ArrayList<LatLng>  getPointsNear(Point center){
+    public ArrayList<LatLng>  getPointsNear(SafePoint center){
         // get all points with a 300 m radius from the user
         ArrayList <LatLng> rv = new ArrayList<>();
         final double mult = 1; // mult = 1.1; is more reliable
         final double radius =400; // distance from point
-        Point p1 = calculateDerivedPosition(center, mult * radius, 0);
-        Point p2 = calculateDerivedPosition(center, mult * radius, 90);
-        Point p3 = calculateDerivedPosition(center, mult * radius, 180);
-        Point p4 = calculateDerivedPosition(center, mult * radius, 270);
+        SafePoint p1 = calculateDerivedPosition(center, mult * radius, 0);
+        SafePoint p2 = calculateDerivedPosition(center, mult * radius, 90);
+        SafePoint p3 = calculateDerivedPosition(center, mult * radius, 180);
+        SafePoint p4 = calculateDerivedPosition(center, mult * radius, 270);
         SQLiteDatabase db = this.getWritableDatabase();
         String strWhere =  " WHERE "
                 + "lat > " + String.valueOf(p3.getLat()) + " AND "
@@ -136,7 +131,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rv;
     }
 
-
+    public SafePoint getNearestSafeLocation(List<LatLng> list){
+        SafePoint nearest_location = new SafePoint(list.get(0).getLatitude(),list.get(0).getLongitude());
+        return nearest_location;
+    }
 /*
     public Cursor getTop10(){
      //   SQLiteDatabase db = this.getWritableDatabase();
