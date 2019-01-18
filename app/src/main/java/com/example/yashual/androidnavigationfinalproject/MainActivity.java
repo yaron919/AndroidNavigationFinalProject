@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
+import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -81,6 +83,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
+        Intent i = new Intent(getApplicationContext(),GPSService.class);
+        startService(i);
         this.databaseHelper = new DatabaseHelper(this);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
@@ -278,6 +282,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
+        Intent i = new Intent(getApplicationContext(),GPSService.class);
+        stopService(i);
     }
 
     @Override

@@ -9,12 +9,21 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-public class LoactionService extends Service {
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
+
+import org.json.JSONObject;
+
+
+public class GPSService extends Service {
     private static final String TAG = "BOOMBOOMTESTGPS";
     private LocationManager mLocationManager = null;
     private static final int LOCATION_INTERVAL = 1000;
-    private static final float LOCATION_DISTANCE = 1000f;
-
+    private static final float LOCATION_DISTANCE = 1f;
     private class LocationListener implements android.location.LocationListener
     {
         Location mLastLocation;
@@ -28,8 +37,9 @@ public class LoactionService extends Service {
         @Override
         public void onLocationChanged(Location location)
         {
-            Log.e(TAG, "onLocationChanged: " + location);
+            Log.e(TAG, "onLocationChanged: location lat:"+location.getLatitude()+" lan:"+location.getLongitude());
             mLastLocation.set(location);
+            ConnectionServer.test(location.getLatitude()+"",location.getLongitude()+"");
         }
 
         @Override
