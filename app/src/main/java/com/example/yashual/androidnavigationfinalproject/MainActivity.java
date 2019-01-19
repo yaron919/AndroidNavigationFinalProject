@@ -4,6 +4,8 @@ package com.example.yashual.androidnavigationfinalproject;
 import java.util.List;
 
 import android.Manifest;
+import android.app.ActivityManager;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -83,8 +85,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
-        Intent i = new Intent(getApplicationContext(),GPSService.class);
-        startService(i);
+        if (!GPSService.state) {
+            Intent i = new Intent(getApplicationContext(), GPSService.class);
+            startService(i);
+        }
         this.databaseHelper = new DatabaseHelper(this);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
@@ -100,9 +104,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     public boolean onMenuItemClick(MenuItem menuItem) {
                         switch(menuItem.getOrder()){
                             case 0:
-                                Toast.makeText(getApplicationContext(), "StartActiviy 0", Toast.LENGTH_SHORT).show();
+                                if (GPSService.state) {
+                                    Intent i = new Intent(getApplicationContext(), GPSService.class);
+                                    stopService(i);
+                                }
                                 return true;
                             case 1:
+                                if (GPSService.state){
+                                    GPSService.isWar = !GPSService.isWar;
+                                    Intent i = new Intent(getApplicationContext(), GPSService.class);
+                                    stopService(i);
+                                    startService(i);
+                                }
+                                return true;
+                            case 2:
                                  // get origin
                                 SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList);
                                 originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
@@ -282,8 +297,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
-        Intent i = new Intent(getApplicationContext(),GPSService.class);
-        stopService(i);
     }
 
     @Override

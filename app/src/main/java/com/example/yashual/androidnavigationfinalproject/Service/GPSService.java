@@ -21,9 +21,11 @@ import org.json.JSONObject;
 
 public class GPSService extends Service {
     private static final String TAG = "BOOMBOOMTESTGPS";
-    private LocationManager mLocationManager = null;
-    private static final int LOCATION_INTERVAL = 1000;
-    private static final float LOCATION_DISTANCE = 1f;
+    public static boolean state;
+    public static boolean isWar;
+    public LocationManager mLocationManager = null;
+    private static int LOCATION_INTERVAL = 1000;
+    private static float LOCATION_DISTANCE = 1300f;
     private class LocationListener implements android.location.LocationListener
     {
         Location mLastLocation;
@@ -37,7 +39,7 @@ public class GPSService extends Service {
         @Override
         public void onLocationChanged(Location location)
         {
-            Log.e(TAG, "onLocationChanged: location lat:"+location.getLatitude()+" lan:"+location.getLongitude());
+            Log.e(TAG, "onLocationChanged: location lat:"+location.getLatitude()+" lan:"+location.getLongitude()+" provider:"+location.getProvider());
             mLastLocation.set(location);
             ConnectionServer.test(location.getLatitude()+"",location.getLongitude()+"");
         }
@@ -84,7 +86,20 @@ public class GPSService extends Service {
     public void onCreate()
     {
         Log.e(TAG, "onCreate");
+        state = true;
         initializeLocationManager();
+        ChangeWarMode(isWar);
+    }
+
+    private void ChangeWarMode(boolean isWarMode){
+        Log.e(TAG, "ChangeWarMode: isWarMode: "+isWarMode);
+        if (isWarMode){
+            LOCATION_INTERVAL = 1000;
+            LOCATION_DISTANCE = 1300f; //~400 [m]
+        }else{
+            LOCATION_INTERVAL = 14400000; //~ 4 [h]
+            LOCATION_DISTANCE = 13123f; // ~4 [km]
+        }
         try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
@@ -103,6 +118,7 @@ public class GPSService extends Service {
         } catch (IllegalArgumentException ex) {
             Log.d(TAG, "gps provider does not exist " + ex.getMessage());
         }
+        Log.e(TAG, "ChangeWarMode: LOCATION_INTERVAL:"+LOCATION_INTERVAL +"\nLOCATION_DISTANCE:"+LOCATION_DISTANCE);
     }
 
     @Override
@@ -119,6 +135,7 @@ public class GPSService extends Service {
                 }
             }
         }
+        state = false;
     }
 
     private void initializeLocationManager() {
