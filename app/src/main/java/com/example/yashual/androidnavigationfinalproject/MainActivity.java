@@ -138,14 +138,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void checkIntent(){
         if (getIntent().getExtras() != null) {
-            Log.d(TAG, "i got an intent");
-            Object value ;
-            double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
-            double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
-            Log.d(TAG, " "+lat+"  "+lan);
-            destinationPosition = Point.fromLngLat(lat,lan);
-            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-            getRoute(originPosition,destinationPosition);
+            try{
+                Log.d(TAG, "i got an intent");
+                Object value ;
+                double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
+                double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
+                Log.d(TAG, " "+lat+"  "+lan);
+                destinationPosition = Point.fromLngLat(lat,lan);
+                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+                getRoute(originPosition,destinationPosition);
+            }catch( Exception e){
+                Log.e(TAG, "error intent");
+            }
         }
     }
 
