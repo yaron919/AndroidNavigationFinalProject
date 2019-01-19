@@ -1,5 +1,7 @@
 package com.example.yashual.androidnavigationfinalproject;
 
+import android.location.Location;
+
 public class SafePoint {
 
     private double lat;
@@ -10,6 +12,10 @@ public class SafePoint {
         this.lan = lan;
     }
 
+    public SafePoint(Location location){
+        this.lan=location.getLongitude();
+        this.lat=location.getLatitude();
+    }
     public double getLat() {
         return lat;
     }

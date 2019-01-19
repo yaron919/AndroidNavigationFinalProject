@@ -129,9 +129,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return rv;
     }
+    public static double getDistanceBetweenTwoPoints(SafePoint p1, SafePoint p2) {
+        double R = 6371000; // m
+        double dLat = Math.toRadians(p2.getLat() - p1.getLat());
+        double dLon = Math.toRadians(p2.getLan() - p1.getLan());
+        double lat1 = Math.toRadians(p1.getLat());
+        double lat2 = Math.toRadians(p2.getLat());
 
-    public SafePoint getNearestSafeLocation(List<LatLng> list){
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2)
+                * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double d = R * c;
+
+        return d;
+    }
+    public SafePoint getNearestSafeLocation(List<LatLng> list,SafePoint currentLocation){
+        double shortestDistance;
+        double distance;
         SafePoint nearest_location = new SafePoint(list.get(0).getLatitude(),list.get(0).getLongitude());
+        shortestDistance = getDistanceBetweenTwoPoints(currentLocation,nearest_location);
+        for(int i = 0 ; i < list.size() ; i++)
+        {
+            SafePoint safePointInList = new SafePoint(list.get(i).getLatitude(),list.get(i).getLongitude());
+            distance = getDistanceBetweenTwoPoints(currentLocation,safePointInList);
+            if(distance < shortestDistance){
+                shortestDistance = distance;
+                nearest_location =safePointInList;
+            }
+        }
         return nearest_location;
     }
 /*

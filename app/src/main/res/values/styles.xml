@@ -1,4 +1,15 @@
 <resources>
+    <style name="SwitchCompatStyle" >
+        <item name="thumbTint">@color/pure_red</item>
+        <item name="trackTint">@color/pure_red</item>
+    </style>
+
+    <style name="MySwitch" parent="@style/Widget.AppCompat.CompoundButton.Switch">
+        <item name="android:thumbTint">@color/switch_color</item>
+        <item name="android:trackTint">@color/switch_color</item>
+        <item name="colorAccent">@color/pure_red</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat</item>
+    </style>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -7,5 +18,4 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
-
 </resources>

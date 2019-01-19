@@ -4,14 +4,11 @@ package com.example.yashual.androidnavigationfinalproject;
 import java.util.List;
 
 import android.Manifest;
-import android.app.ActivityManager;
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
@@ -29,9 +26,10 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import android.location.Location;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.PopupMenu;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -44,7 +42,6 @@ import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 // classes needed to add a marker
-import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 // classes to calculate a route
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
@@ -67,8 +64,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
     private Location originLocation;
-    // variables for adding a marker
-    private Marker destinationMarker;
     // variables for calculating and drawing a route
     private Point originPosition;
     private Point destinationPosition;
@@ -76,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = "DirectionsActivity";
     private NavigationMapRoute navigationMapRoute;
     private ConnectionServer connectionServer;
-    private FloatingActionButton settings;
+    private Button navigateButton;
     private DatabaseHelper databaseHelper;
     private List<LatLng> safeList;
 
@@ -93,44 +88,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
-        settings = findViewById(R.id.settingButton);
-        settings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                PopupMenu popupMenu = new PopupMenu(MainActivity.this,settings);
-                popupMenu.getMenuInflater().inflate(R.menu.popup_menu,popupMenu.getMenu());
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        switch(menuItem.getOrder()){
-                            case 0:
-                                if (GPSService.state) {
-                                    Intent i = new Intent(getApplicationContext(), GPSService.class);
-                                    stopService(i);
-                                }
-                                return true;
-                            case 1:
-                                if (GPSService.state){
-                                    GPSService.isWar = !GPSService.isWar;
-                                    Intent i = new Intent(getApplicationContext(), GPSService.class);
-                                    stopService(i);
-                                    startService(i);
-                                }
-                                return true;
-                            case 2:
-                                 // get origin
-                                SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList);
-                                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-                                destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
-                                getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
-                                return true;
-                            default:
-                                return true;
-                        }
-                    }
-                });
-                popupMenu.show();
-            }
+        navigateButton = findViewById(R.id.navigateButton);
+        Switch warSwitch = (Switch) findViewById(R.id.warSwitch);
+        warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            GPSService.isWar = isChecked;
+            Intent i = new Intent(getApplicationContext(), GPSService.class);
+            stopService(i);
+            startService(i);
+        });
+        navigateButton.setOnClickListener(v -> {
+            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
+            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+            destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
+            getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
         });
         this.connectionServer = new ConnectionServer(this);
 

@@ -9,14 +9,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
-
-import org.json.JSONObject;
 
 
 public class GPSService extends Service {
@@ -32,14 +25,14 @@ public class GPSService extends Service {
 
         public LocationListener(String provider)
         {
-            Log.e(TAG, "LocationListener " + provider);
+            Log.d(TAG, "LocationListener " + provider);
             mLastLocation = new Location(provider);
         }
 
         @Override
         public void onLocationChanged(Location location)
         {
-            Log.e(TAG, "onLocationChanged: location lat:"+location.getLatitude()+" lan:"+location.getLongitude()+" provider:"+location.getProvider());
+            Log.d(TAG, "onLocationChanged: location lat:"+location.getLatitude()+" lan:"+location.getLongitude()+" provider:"+location.getProvider());
             mLastLocation.set(location);
             ConnectionServer.test(location.getLatitude()+"",location.getLongitude()+"");
         }
@@ -47,19 +40,19 @@ public class GPSService extends Service {
         @Override
         public void onProviderDisabled(String provider)
         {
-            Log.e(TAG, "onProviderDisabled: " + provider);
+            Log.d(TAG, "onProviderDisabled: " + provider);
         }
 
         @Override
         public void onProviderEnabled(String provider)
         {
-            Log.e(TAG, "onProviderEnabled: " + provider);
+            Log.d(TAG, "onProviderEnabled: " + provider);
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras)
         {
-            Log.e(TAG, "onStatusChanged: " + provider);
+            Log.d(TAG, "onStatusChanged: " + provider);
         }
     }
 
@@ -77,7 +70,7 @@ public class GPSService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        Log.e(TAG, "onStartCommand");
+        Log.d(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
@@ -85,14 +78,14 @@ public class GPSService extends Service {
     @Override
     public void onCreate()
     {
-        Log.e(TAG, "onCreate");
+        Log.d(TAG, "onCreate");
         state = true;
         initializeLocationManager();
         ChangeWarMode(isWar);
     }
 
     private void ChangeWarMode(boolean isWarMode){
-        Log.e(TAG, "ChangeWarMode: isWarMode: "+isWarMode);
+        Log.d(TAG, "ChangeWarMode: isWarMode: "+isWarMode);
         if (isWarMode){
             LOCATION_INTERVAL = 1000;
             LOCATION_DISTANCE = 1300f; //~400 [m]
@@ -118,13 +111,13 @@ public class GPSService extends Service {
         } catch (IllegalArgumentException ex) {
             Log.d(TAG, "gps provider does not exist " + ex.getMessage());
         }
-        Log.e(TAG, "ChangeWarMode: LOCATION_INTERVAL:"+LOCATION_INTERVAL +"\nLOCATION_DISTANCE:"+LOCATION_DISTANCE);
+        Log.d(TAG, "ChangeWarMode: LOCATION_INTERVAL:"+LOCATION_INTERVAL +"\nLOCATION_DISTANCE:"+LOCATION_DISTANCE);
     }
 
     @Override
     public void onDestroy()
     {
-        Log.e(TAG, "onDestroy");
+        Log.d(TAG, "onDestroy");
         super.onDestroy();
         if (mLocationManager != null) {
             for (int i = 0; i < mLocationListeners.length; i++) {
@@ -139,7 +132,7 @@ public class GPSService extends Service {
     }
 
     private void initializeLocationManager() {
-        Log.e(TAG, "initializeLocationManager");
+        Log.d(TAG, "initializeLocationManager");
         if (mLocationManager == null) {
             mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         }
