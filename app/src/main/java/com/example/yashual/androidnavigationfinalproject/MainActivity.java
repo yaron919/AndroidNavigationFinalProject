@@ -93,27 +93,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
-
-
-        this.databaseHelper = new DatabaseHelper(this);
+        languageButton = findViewById(R.id.languageButton);
         mapView = findViewById(R.id.mapView);
+        warSwitch = (Switch) findViewById(R.id.warSwitch);
+        navigateButton = findViewById(R.id.navigateButton);
+        this.databaseHelper = new DatabaseHelper(this);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
-        navigateButton = findViewById(R.id.navigateButton);
-        warSwitch = (Switch) findViewById(R.id.warSwitch);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             GPSService.isWar = isChecked;
             Intent i = new Intent(getApplicationContext(), GPSService.class);
             stopService(i);
             startService(i);
         });
-        languageButton = findViewById(R.id.languageButton);
-        languageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeLocale();
-            }
-        });
+        languageButton.setOnClickListener(v -> changeLocale());
         navigateButton.setOnClickListener(v -> {
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
