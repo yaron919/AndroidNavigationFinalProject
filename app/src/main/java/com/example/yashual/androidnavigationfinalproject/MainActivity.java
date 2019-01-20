@@ -141,18 +141,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void updateView(String language) {
-        Context context = LocaleHelper.setLocale(this,language);
-        Resources resources = context.getResources();
-        navigateButton.setText(resources.getString(R.string.navigate_to_safe_place));
-        languageButton.setContentDescription(resources.getString(R.string.language_change));
-        warSwitch.setText(resources.getString(R.string.war_mode));
-
+        LocaleHelper.setLocale(this,language);
     }
 
     private void changeLocale(){
         String current_lang = Locale.getDefault().getDisplayLanguage();
-        String lang = "en";
-        Log.e(TAG, "current language:" + current_lang );
+        Log.d(TAG, "current language:" + current_lang);
         switch(current_lang) {
             case("English"):
                 Paper.book().write("language","iw");
@@ -161,18 +155,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case("עברית"):
                 Paper.book().write("language","en");
                 updateView((String)Paper.book().read("language"));
-            break;
+                break;
         }
-
-/*        Locale myLocale = new Locale(lang);
-        Resources res = getResources();
-        DisplayMetrics dm = res.getDisplayMetrics();
-        Configuration conf = res.getConfiguration();
-        conf.locale = myLocale;
-        res.updateConfiguration(conf, dm);
+        updateView((String)Paper.book().read("language"));
         Intent refresh = new Intent(this, MainActivity.class);
         startActivity(refresh);
-        finish();*/
+        finish();
     }
 
     private void navigationLauncherStart(){

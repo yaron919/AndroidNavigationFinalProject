@@ -56,7 +56,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             else
                 return true;
         }else{
-            Log.e(TAG, "data exist in table id is: "+does_exist.getInt(0));
+            Log.d(TAG, "data exist in table id is: "+does_exist.getInt(0));
             return false;
         }
     }
@@ -119,13 +119,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "lan < " + String.valueOf(p2.getLan()) + " AND "
                 + "lan > " + String.valueOf(p4.getLan());
 
-        Log.e(TAG, "where : "+strWhere);
+        Log.d(TAG, "where : "+strWhere);
         String query = "SELECT * FROM "+TABLE_NAME+strWhere;
         Cursor safePlacesNear = db.rawQuery(query,null);
-        Log.e(TAG, "getPointsNear: counts "+safePlacesNear.getCount() );
+        Log.d(TAG, "getPointsNear: counts "+safePlacesNear.getCount() );
         while(safePlacesNear.moveToNext()){
             rv.add(new LatLng(safePlacesNear.getDouble(1), safePlacesNear.getDouble(2)));
-            Log.e(TAG, "points near are : "+safePlacesNear.getInt(0));
+            Log.d(TAG, "points near are : "+safePlacesNear.getInt(0));
         }
         return rv;
     }
