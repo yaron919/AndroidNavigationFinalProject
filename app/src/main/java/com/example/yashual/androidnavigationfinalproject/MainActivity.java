@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -13,6 +14,7 @@ import android.content.res.Resources;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
@@ -111,7 +113,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
             destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
-            getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
+            if(validateDistanceToClosestPoint(originPosition,destinationPosition)){
+                getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
+            }else
+                showNoSafePointMessage();
         });
 
         //Set default lang
@@ -131,6 +136,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         this.connectionServer = new ConnectionServer(this);
 
+    }
+
+    private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination){
+        double distance = databaseHelper.getDistanceBetweenTwoPoints(new SafePoint(currentLocation.latitude()
+                ,currentLocation.altitude()
+        ),new SafePoint(destination.latitude(),destination.altitude()));
+        return (distance < 300);
+    }
+    private void showNoSafePointMessage(){
+        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+        alertDialog.setTitle(R.string.instructions_headline);
+        alertDialog.setMessage(getResources().getString(R.string.instructions));
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getResources().getString(R.string.ok),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 
     private void updateView(String language) {
@@ -195,7 +219,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.d(TAG, " "+lat+"  "+lan);
                 destinationPosition = Point.fromLngLat(lat,lan);
                 originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-                getRoute(originPosition,destinationPosition);
+                if(validateDistanceToClosestPoint(originPosition,destinationPosition)){
+                    getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
+                }else
+                    showNoSafePointMessage();
             }catch(Exception e){
                 Log.e(TAG, "checkIntent: error in function");
             }

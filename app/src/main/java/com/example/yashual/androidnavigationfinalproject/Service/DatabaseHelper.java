@@ -129,7 +129,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return rv;
     }
-    public static double getDistanceBetweenTwoPoints(SafePoint p1, SafePoint p2) {
+    public double getDistanceBetweenTwoPoints(SafePoint p1, SafePoint p2) {
         double R = 6371000; // m
         double dLat = Math.toRadians(p2.getLat() - p1.getLat());
         double dLon = Math.toRadians(p2.getLan() - p1.getLan());

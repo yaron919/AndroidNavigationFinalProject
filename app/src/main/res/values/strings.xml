@@ -8,4 +8,7 @@
     <string name="navigate_to_safe_place">Navigate to a safe location</string>
     <string name="war_mode"> War mode</string>
     <string name="language_change">Change language</string>
+    <string name="instructions_headline">Instructions</string>
+    <string name="ok">OK</string>
+    <string name="instructions">Lay on the ground and protect your head with your hands</string>
 </resources>
