@@ -2,11 +2,14 @@ package com.example.yashual.androidnavigationfinalproject;
 
 
 import java.util.List;
+import java.util.Locale;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -26,9 +29,10 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import android.location.Location;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -74,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Button navigateButton;
     private DatabaseHelper databaseHelper;
     private List<LatLng> safeList;
+    private ImageButton languageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +101,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             stopService(i);
             startService(i);
         });
+        languageButton = findViewById(R.id.languageButton);
+        languageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeLocale();
+            }
+        });
         navigateButton.setOnClickListener(v -> {
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
@@ -104,6 +116,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
         this.connectionServer = new ConnectionServer(this);
 
+    }
+
+    private void changeLocale(){
+        String current_lang = Locale.getDefault().getDisplayLanguage();
+        String lang = "en";
+        Log.e(TAG, "current language:" + current_lang );
+        switch(current_lang) {
+            case("English"): lang = "iw";
+            break;
+            case("Hebrew"): lang = "en";
+            break;
+        }
+
+        Locale myLocale = new Locale(lang);
+        Resources res = getResources();
+        DisplayMetrics dm = res.getDisplayMetrics();
+        Configuration conf = res.getConfiguration();
+        conf.locale = myLocale;
+        res.updateConfiguration(conf, dm);
+        Intent refresh = new Intent(this, MainActivity.class);
+        startActivity(refresh);
+        finish();
     }
 
     private void navigationLauncherStart(){

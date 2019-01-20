@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AndroidNavigationFinalProject</string>
+    <string name="access_token">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwNDZyYmdxMDFnMjNsbWt3amJoMTdjdiJ9.-FD6s9dT92zpHFFv8dNFkA</string>
+    <string name="access_token_notification">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwaDg1ZWZwMHJhODNwbGc3NDZxN202NSJ9.cEXdBXMS74lHO3pOHvmyrQ</string>
+    <string name="user_location_permission_not_granted">לא אישרת לקיחת מיקום</string>
+    <string name="war_mode">מצב לחימה</string>
+    <string name="user_location_permission_explanation">האפליקציה צריכה את הרשאות המיקום שלך על מנת לפעול כראוי</string>
+    <string name="title_activity_navigation_after_notification">ניווט פיקוד העורף</string>
+    <string name="navigate_to_safe_place"> נווט למקום הבטוח הקרוב</string>
+    <string name="language_change">החלף שפה</string>
+</resources>

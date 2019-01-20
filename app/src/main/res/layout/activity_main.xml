@@ -29,10 +29,10 @@
         android:theme="@style/MySwitch"
         mapbox:layout_constraintBottom_toBottomOf="parent"
         mapbox:layout_constraintEnd_toEndOf="parent"
-        mapbox:layout_constraintHorizontal_bias="0.06"
+        mapbox:layout_constraintHorizontal_bias="0.058"
         mapbox:layout_constraintStart_toStartOf="parent"
         mapbox:layout_constraintTop_toTopOf="parent"
-        mapbox:layout_constraintVertical_bias="0.029" />
+        mapbox:layout_constraintVertical_bias="0.13" />
 
     <Button
         android:id="@+id/navigateButton"
@@ -49,6 +49,22 @@
         mapbox:layout_constraintStart_toStartOf="parent"
         mapbox:layout_constraintTop_toTopOf="parent"
         mapbox:layout_constraintVertical_bias="1.0" />
+
+    <ImageButton
+        android:id="@+id/languageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:contentDescription="@string/language_change"
+        mapbox:layout_constraintBottom_toTopOf="@+id/warSwitch"
+        mapbox:layout_constraintEnd_toEndOf="parent"
+        mapbox:layout_constraintHorizontal_bias="0.049"
+        mapbox:layout_constraintStart_toStartOf="parent"
+        mapbox:layout_constraintTop_toTopOf="parent"
+        mapbox:layout_constraintVertical_bias="0.0"
+        mapbox:srcCompat="@drawable/globe_icon" />
 
 
 </android.support.constraint.ConstraintLayout>
