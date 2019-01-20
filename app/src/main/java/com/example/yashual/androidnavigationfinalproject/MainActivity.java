@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
+import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -53,6 +54,7 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 
+import io.paperdb.Paper;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -79,22 +81,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DatabaseHelper databaseHelper;
     private List<LatLng> safeList;
     private ImageButton languageButton;
+    private Switch warSwitch;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase,"en"));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
-        if (!GPSService.state) {
-            Intent i = new Intent(getApplicationContext(), GPSService.class);
-            startService(i);
-        }
+
+
         this.databaseHelper = new DatabaseHelper(this);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
         navigateButton = findViewById(R.id.navigateButton);
-        Switch warSwitch = (Switch) findViewById(R.id.warSwitch);
+        warSwitch = (Switch) findViewById(R.id.warSwitch);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             GPSService.isWar = isChecked;
             Intent i = new Intent(getApplicationContext(), GPSService.class);
@@ -114,7 +120,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
             getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
         });
+
+        //Set default lang
+        Paper.init(this);
+
+        //English is default
+        String language = Paper.book().read("language");
+        if(language == null)
+            Paper.book().write("language","en");
+
+        updateView((String)Paper.book().read("language"));
+
+        if (!GPSService.state) {
+            Intent i = new Intent(getApplicationContext(), GPSService.class);
+            startService(i);
+        }
+
         this.connectionServer = new ConnectionServer(this);
+
+    }
+
+    private void updateView(String language) {
+        Context context = LocaleHelper.setLocale(this,language);
+        Resources resources = context.getResources();
+        navigateButton.setText(resources.getString(R.string.navigate_to_safe_place));
+        languageButton.setContentDescription(resources.getString(R.string.language_change));
+        warSwitch.setText(resources.getString(R.string.war_mode));
 
     }
 
@@ -123,13 +154,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         String lang = "en";
         Log.e(TAG, "current language:" + current_lang );
         switch(current_lang) {
-            case("English"): lang = "iw";
-            break;
-            case("Hebrew"): lang = "en";
+            case("English"):
+                Paper.book().write("language","iw");
+                updateView((String)Paper.book().read("language"));
+                break;
+            case("עברית"):
+                Paper.book().write("language","en");
+                updateView((String)Paper.book().read("language"));
             break;
         }
 
-        Locale myLocale = new Locale(lang);
+/*        Locale myLocale = new Locale(lang);
         Resources res = getResources();
         DisplayMetrics dm = res.getDisplayMetrics();
         Configuration conf = res.getConfiguration();
@@ -137,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         res.updateConfiguration(conf, dm);
         Intent refresh = new Intent(this, MainActivity.class);
         startActivity(refresh);
-        finish();
+        finish();*/
     }
 
     private void navigationLauncherStart(){
