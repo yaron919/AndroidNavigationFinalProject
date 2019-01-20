@@ -113,10 +113,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
             destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
-            if(validateDistanceToClosestPoint(originPosition,destinationPosition)){
-                getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
-            }else
-                showNoSafePointMessage();
+            getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
         });
 
         //Set default lang
