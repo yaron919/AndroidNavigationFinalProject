@@ -48,8 +48,7 @@ public class ConnectionServer  {
                 try {
                     JSONArray jsonArray = response.getJSONArray("locations");
                     ArrayList <LatLng> rv;
-                    for (int i=0; i< jsonArray.length(); i++) {
-                        JSONObject latlan = jsonArray.getJSONObject(i);
+                    for (int i=0; i< jsonArray.length(); i++) { JSONObject latlan = jsonArray.getJSONObject(i);
                         mDatabaseHelper.addData(latlan.getDouble("lat"),latlan.getDouble("lan")); // adding points to local db
                     }
                     Log.e(TAG, "onResponse: before show safe location");
