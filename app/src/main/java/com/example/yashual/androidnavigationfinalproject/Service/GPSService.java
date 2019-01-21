@@ -11,6 +11,10 @@ import android.util.Log;
 
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 
+import org.json.JSONException;
+
+import java.io.IOException;
+
 
 public class GPSService extends Service {
     private static final String TAG = "BOOMBOOMTESTGPS";
@@ -34,7 +38,13 @@ public class GPSService extends Service {
         {
             Log.d(TAG, "onLocationChanged: location lat:"+location.getLatitude()+" lan:"+location.getLongitude()+" provider:"+location.getProvider());
             mLastLocation.set(location);
-            ConnectionServer.test(location.getLatitude()+"",location.getLongitude()+"");
+            try {
+                ConnectionServer.sendMyLocationToServer(location.getLatitude(),location.getLongitude());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
