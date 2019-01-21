@@ -25,6 +25,7 @@ import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.geojson.Point;
@@ -36,6 +37,7 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -45,6 +47,11 @@ import android.support.annotation.NonNull;
 
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
+import com.mapbox.mapboxsdk.offline.OfflineManager;
+import com.mapbox.mapboxsdk.offline.OfflineRegion;
+import com.mapbox.mapboxsdk.offline.OfflineRegionError;
+import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
+import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
@@ -66,6 +73,8 @@ import android.util.Log;
 
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
+import org.json.JSONObject;
+
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
     private MapView mapView;
     // variables for adding location layer
@@ -84,6 +93,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<LatLng> safeList;
     private ImageButton languageButton;
     private Switch warSwitch;
+
+    //offline maps
+    private boolean isEndNotified;
+    private ProgressBar progressBar;
+    private OfflineManager offlineManager;
+
+    // JSON encoding/decoding
+    public static final String JSON_CHARSET = "UTF-8";
+    public static final String JSON_FIELD_REGION_NAME = "FIELD_REGION_NAME";
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -132,6 +150,88 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         this.connectionServer = new ConnectionServer(this);
+        downloadOfflineMap();
+    }
+
+    private void downloadOfflineMap(){
+
+        //Set up offline manager
+        offlineManager = OfflineManager.getInstance(MainActivity.this);
+        LatLngBounds latLngBounds = new LatLngBounds.Builder()
+                .include(new LatLng(35.225, 33.248)) // Northeast
+                .include(new LatLng(34.445, 30.942)) // Southwest
+                .build();
+        // Define the offline region
+        Log.e(TAG, "Inside offline");
+        OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
+                "mapbox://styles/yaron919/cjr64dzlf36g02slfo0s3zzkm",
+                latLngBounds,
+                6,
+                13,
+                MainActivity.this.getResources().getDisplayMetrics().density);
+        // Set the metadata
+        byte[] metadata;
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put(JSON_FIELD_REGION_NAME, "Metola to bear sheva");
+            String json = jsonObject.toString();
+            metadata = json.getBytes(JSON_CHARSET);
+        } catch (Exception exception) {
+            Log.e(TAG, "Failed to encode metadata: " + exception.getMessage());
+            metadata = null;
+        }
+        // Create the region asynchronously
+        offlineManager.createOfflineRegion(
+                definition,
+                metadata,
+                new OfflineManager.CreateOfflineRegionCallback() {
+                    @Override
+                    public void onCreate(OfflineRegion offlineRegion) {
+                        offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
+                        // Display the download progress bar
+                        //       progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+                        //       startProgress();
+
+                        // Monitor the download progress using setObserver
+                        offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
+                            @Override
+                            public void onStatusChanged(OfflineRegionStatus status) {
+                                Log.e(TAG, "Download started");
+                                // Calculate the download percentage and update the progress bar
+                                double percentage = status.getRequiredResourceCount() >= 0
+                                        ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
+                                        0.0;
+
+                                if (status.isComplete()) {
+                                    Log.e(TAG, "Download complete");
+                                    // Download complete
+                                   //      endProgress("done");
+                                } else if (status.isRequiredResourceCountPrecise()) {
+                                    // Switch to determinate state
+                                    //      setPercentage((int) Math.round(percentage));
+                                }
+                            }
+
+                            @Override
+                            public void onError(OfflineRegionError error) {
+                                // If an error occurs, print to logcat
+                                Log.e(TAG, "onError reason: " + error.getReason());
+                                Log.e(TAG, "onError message: " + error.getMessage());
+                            }
+
+                            @Override
+                            public void mapboxTileCountLimitExceeded(long limit) {
+                                // Notify if offline region exceeds maximum tile count
+                                Log.e(TAG, "Mapbox tile count limit exceeded: " + limit);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "Error: help " + error);
+                    }
+                });
 
     }
 
@@ -321,12 +421,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onResume();
         mapView.onResume();
     }
-
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
         mapView.onPause();
+        if (offlineManager != null) {
+            offlineManager.listOfflineRegions(new OfflineManager.ListOfflineRegionsCallback() {
+                @Override
+                public void onList(OfflineRegion[] offlineRegions) {
+                    if (offlineRegions.length > 0) {
+                        // delete the last item in the offlineRegions list which will be yosemite offline map
+                        offlineRegions[(offlineRegions.length - 1)].delete(new OfflineRegion.OfflineRegionDeleteCallback() {
+                            @Override
+                            public void onDelete() {
+                                Toast.makeText(
+                                        MainActivity.this,
+                                        getString(R.string.project_id),
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.e(TAG, "On Delete error: " + error);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e(TAG, "onListError: " + error);
+                }
+            });
+        }
     }
+
 
     @Override
     protected void onStop() {
@@ -387,6 +517,36 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mapboxMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(position), 7000);
+    }
+
+
+    // Progress bar methods
+    private void startProgress() {
+
+        // Start and show the progress bar
+        isEndNotified = false;
+        progressBar.setIndeterminate(true);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void setPercentage(final int percentage) {
+        progressBar.setIndeterminate(false);
+        progressBar.setProgress(percentage);
+    }
+
+    private void endProgress(final String message) {
+        // Don't notify more than once
+        if (isEndNotified) {
+            return;
+       }
+
+        // Stop and hide the progress bar
+        isEndNotified = true;
+        progressBar.setIndeterminate(false);
+        progressBar.setVisibility(View.GONE);
+
+        // Show a toast
+        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
     }
 }
 
