@@ -8,4 +8,6 @@
     <string name="navigate_to_safe_place">Navigate to a safe location</string>
     <string name="war_mode"> War mode</string>
     <string name="language_change">Change language</string>
+    <string name="was_navigation_stopped" translatable="false">was_navigation_stopped</string>
+    <string name="was_in_tunnel" translatable="false">was_in_tunnel</string>
 </resources>

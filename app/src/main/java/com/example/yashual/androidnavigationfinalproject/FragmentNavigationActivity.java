@@ -9,25 +9,22 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import com.mapbox.services.android.navigation.testapp.R;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 public class FragmentNavigationActivity extends AppCompatActivity {
 
   private static final String FAB_VISIBLE_KEY = "restart_fab_visible";
-
-  @BindView(R.id.restart_navigation_fab)
-  FloatingActionButton restartNavigationFab;
+  private FloatingActionButton restartNavigationFab;
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_navigation_fragment);
-    ButterKnife.bind(this);
     initializeNavigationViewFragment(savedInstanceState);
+    restartNavigationFab = findViewById(R.id.restart_navigation_fab);
+    restartNavigationFab.setOnClickListener(v -> {
+      replaceFragment(new NavigationFragment());
+      restartNavigationFab.hide();
+    });
   }
 
   @Override
@@ -42,12 +39,6 @@ public class FragmentNavigationActivity extends AppCompatActivity {
     boolean isVisible = savedInstanceState.getBoolean(FAB_VISIBLE_KEY);
     int visibility = isVisible ? View.VISIBLE : View.INVISIBLE;
     restartNavigationFab.setVisibility(visibility);
-  }
-
-  @OnClick(R.id.restart_navigation_fab)
-  public void onClick(FloatingActionButton restartNavigationFab) {
-    replaceFragment(new NavigationFragment());
-    restartNavigationFab.hide();
   }
 
   public void showNavigationFab() {

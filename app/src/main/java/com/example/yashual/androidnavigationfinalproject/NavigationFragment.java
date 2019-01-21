@@ -18,8 +18,6 @@ import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.services.android.navigation.testapp.R;
-import com.mapbox.services.android.navigation.testapp.activity.navigationui.SimplifiedCallback;
 import com.mapbox.services.android.navigation.ui.v5.NavigationView;
 import com.mapbox.services.android.navigation.ui.v5.NavigationViewOptions;
 import com.mapbox.services.android.navigation.ui.v5.OnNavigationReadyCallback;
@@ -166,17 +164,17 @@ public class NavigationFragment extends Fragment implements OnNavigationReadyCal
         @Override
         public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
           directionsRoute = response.body().routes().get(0);
-          startNavigation();
+          startNavigation(directionsRoute);
         }
       });
   }
 
-  private void startNavigation() {
-    if (directionsRoute == null) {
+  public void startNavigation(DirectionsRoute directions) {
+    if (directions == null) {
       return;
     }
     NavigationViewOptions options = NavigationViewOptions.builder()
-      .directionsRoute(directionsRoute)
+      .directionsRoute(directions)
       .shouldSimulateRoute(true)
       .navigationListener(NavigationFragment.this)
       .progressChangeListener(this)
