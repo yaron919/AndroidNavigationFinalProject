@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(language == null)
             Paper.book().write("language","en");
 
+
         updateView((String)Paper.book().read("language"));
 
         this.connectionServer = new ConnectionServer(this);
@@ -243,16 +244,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.e(TAG, "onCreate: results unique_id: "+unique_id );
         if (unique_id == null){
             Log.d(TAG, "onCreate: unique_id: "+unique_id);
-            unique_id = FirebaseInstanceId.getInstance().getToken();
             try {
                 connectionServer.registerOnServerMyPhoneId();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Paper.book().write("unique_id",unique_id);
         }
     }
-
 
     private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination){
         double distance = databaseHelper.getDistanceBetweenTwoPoints(new SafePoint(currentLocation.latitude()
@@ -329,12 +327,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void checkIntent(){
-        if (getIntent().hasExtra("lat") && getIntent().hasExtra("lan")) {
+        if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude")) {
             try{
                 Log.d(TAG, "i got an intent");
                 double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
                 double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
-                Log.d(TAG, " "+lat+"  "+lan);
+                Log.d(TAG, "lat:"+lat+" lan:  "+lan);
                 destinationPosition = Point.fromLngLat(lat,lan);
                 originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
                 if(validateDistanceToClosestPoint(originPosition,destinationPosition)){
@@ -392,7 +390,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
             // Activate the MapboxMap LocationComponent to show user location
             // Adding in LocationComponentOptions is also an optional parameter
-
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
             locationComponent.activateLocationComponent(this);
             locationComponent.setLocationComponentEnabled(true);

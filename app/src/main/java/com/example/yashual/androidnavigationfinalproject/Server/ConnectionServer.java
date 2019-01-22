@@ -126,11 +126,13 @@ public class ConnectionServer  {
         String url = "http://3.121.116.91:3000/idle/register";
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("unique_id",unique_id);
+        jsonObj.put("is_android",1);
         Log.d(TAG, "registerOnServerMyPhoneId: body json:"+jsonObj.toString());
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.e(TAG, "onResponse: from register on server");
+                Paper.book().write("unique_id",unique_id);
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override
