@@ -67,12 +67,12 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
         Intent resultIntent = new Intent(this, MainActivity.class);
         resultIntent.putExtra("lat",data.get("lat"));
         resultIntent.putExtra("lan",data.get("lan"));
-//      Create the TaskStackBuilder and add the intent, which inflates the back stack
+        //      Create the TaskStackBuilder and add the intent, which inflates the back stack
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addNextIntent(resultIntent);
-//      Get the PendingIntent containing the entire back stack
+        //      Get the PendingIntent containing the entire back stack
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-//create notification
+        //create notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,NOTIFICATION_CHANNEL_ID);
         notificationBuilder.setAutoCancel(true)
                 .setDefaults(Notification.DEFAULT_ALL)
@@ -83,7 +83,6 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
                 .setAutoCancel(true);
 
         notificationManager.notify(new Random().nextInt(),notificationBuilder.build());
-
 
     }
 

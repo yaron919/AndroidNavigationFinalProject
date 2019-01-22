@@ -130,6 +130,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rv;
     }
     public double getDistanceBetweenTwoPoints(SafePoint p1, SafePoint p2) {
+        Log.d(TAG, "getDistanceBetweenTwoPoints: p1 lat:"+p1.getLat() +" lan:"+p1.getLan());
+        Log.d(TAG, "getDistanceBetweenTwoPoints: p2 lat:"+p2.getLat() +" lan:"+p2.getLan());
         double R = 6371000; // m
         double dLat = Math.toRadians(p2.getLat() - p1.getLat());
         double dLon = Math.toRadians(p2.getLan() - p1.getLan());
@@ -140,8 +142,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double d = R * c;
-
+        Log.d(TAG, "getDistanceBetweenTwoPoints: d = "+d);
         return d;
+    }
+
+    public static double distance(double userLat, double venueLat, double userLng,
+                                  double venueLng) {
+        double R = 6371000; // m
+        double latDistance = Math.toRadians(userLat - venueLat);
+        double lngDistance = Math.toRadians(userLng - venueLng);
+
+        double a = (Math.sin(latDistance / 2) * Math.sin(latDistance / 2)) +
+                (Math.cos(Math.toRadians(userLat))) *
+                        (Math.cos(Math.toRadians(venueLat))) *
+                        (Math.sin(lngDistance / 2)) *
+                        (Math.sin(lngDistance / 2));
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return (int) (Math.round(R * c));
     }
     public SafePoint getNearestSafeLocation(List<LatLng> list,SafePoint currentLocation){
         double shortestDistance;

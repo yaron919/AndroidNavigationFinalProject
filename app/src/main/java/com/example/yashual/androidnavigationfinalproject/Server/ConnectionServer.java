@@ -60,19 +60,19 @@ public class ConnectionServer  {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Log.e(TAG, "getSafeLocation: body:" + jsonObj.toString() );
+        Log.d(TAG, "getSafeLocation: body:" + jsonObj.toString() );
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
-                    Log.e(TAG, "onResponse: getSafeLocation"+response.toString());
+                    Log.d(TAG, "onResponse: getSafeLocation"+response.toString());
                     JSONArray jsonArray = response.getJSONArray("result");
                     ArrayList <LatLng> rv;
                     for (int i=0; i< jsonArray.length(); i++) {
                         JSONObject latlan = jsonArray.getJSONObject(i);
                         mDatabaseHelper.addData(latlan.getDouble("latitude"),latlan.getDouble("longitude")); // adding points to local db
                     }
-                    Log.e(TAG, "onResponse: before show safe location");
+                    Log.d(TAG, "onResponse: before show safe location");
                     rv = mDatabaseHelper.getPointsNear(originPosition); // get points from db
                     mainActivity.addSafeMarkerOnMap(rv);
                 } catch (JSONException e) {
@@ -126,11 +126,13 @@ public class ConnectionServer  {
         String url = "http://3.121.116.91:3000/idle/register";
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("unique_id",unique_id);
+        jsonObj.put("is_android",1);
         Log.d(TAG, "registerOnServerMyPhoneId: body json:"+jsonObj.toString());
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.e(TAG, "onResponse: from register on server");
+                Paper.book().write("unique_id",unique_id);
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override

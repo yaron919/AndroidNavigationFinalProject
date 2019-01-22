@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(language == null)
             Paper.book().write("language","en");
 
+
         updateView((String)Paper.book().read("language"));
 
         this.connectionServer = new ConnectionServer(this);
@@ -243,22 +244,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.e(TAG, "onCreate: results unique_id: "+unique_id );
         if (unique_id == null){
             Log.d(TAG, "onCreate: unique_id: "+unique_id);
-            unique_id = FirebaseInstanceId.getInstance().getToken();
             try {
                 connectionServer.registerOnServerMyPhoneId();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Paper.book().write("unique_id",unique_id);
         }
     }
 
-
     private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination){
-        double distance = databaseHelper.getDistanceBetweenTwoPoints(new SafePoint(currentLocation.latitude()
-                ,currentLocation.altitude()
-        ),new SafePoint(destination.latitude(),destination.altitude()));
-        return (distance < 300);
+        double distance = databaseHelper.getDistanceBetweenTwoPoints(
+                new SafePoint(currentLocation.latitude(),currentLocation.longitude()),
+                new SafePoint(destination.latitude(),destination.longitude()));
+        Log.d(TAG, "validateDistanceToClosestPoint: distance: "+distance);
+        return (distance < 500);
     }
 
     private void showNoSafePointMessage(){
@@ -329,14 +328,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void checkIntent(){
-        if (getIntent().hasExtra("lat") && getIntent().hasExtra("lan")) {
+        Log.e(TAG, "checkIntent: start function");
+        if (getIntent().hasExtra("redAlertId")) {
+            Log.d(TAG, "checkIntent: alert: " + getIntent().getStringExtra("redAlertId"));
+        }
+        if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude")) {
             try{
+                Log.e(TAG, "checkIntent: extras:"+getIntent().getExtras().toString());
                 Log.d(TAG, "i got an intent");
-                double lat = Double.parseDouble(getIntent().getStringExtra("lat"));
-                double lan = Double.parseDouble(getIntent().getStringExtra("lan"));
-                Log.d(TAG, " "+lat+"  "+lan);
+                double lat = Double.parseDouble(getIntent().getStringExtra("latitude"));
+                double lan = Double.parseDouble(getIntent().getStringExtra("longitude"));
+                Log.d(TAG, "lat:"+lat+" lan:  "+lan);
                 destinationPosition = Point.fromLngLat(lat,lan);
-                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+                originPosition = Point.fromLngLat(originLocation.getLatitude(),originLocation.getLongitude());
                 if(validateDistanceToClosestPoint(originPosition,destinationPosition)){
                     getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
                 }else
@@ -392,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
             // Activate the MapboxMap LocationComponent to show user location
             // Adding in LocationComponentOptions is also an optional parameter
-
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
             locationComponent.activateLocationComponent(this);
             locationComponent.setLocationComponentEnabled(true);
