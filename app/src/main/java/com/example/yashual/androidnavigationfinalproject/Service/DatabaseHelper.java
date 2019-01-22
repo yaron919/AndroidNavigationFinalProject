@@ -49,7 +49,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ContentValues contentValues = new ContentValues();
             contentValues.put(COL1,lat);
             contentValues.put(COL2,lan);
-            Log.e(TAG, "add lat and lan: Adding: "+lat+", "+lan+"+ to "+TABLE_NAME);
+            Log.d(TAG, "add lat and lan: Adding: "+lat+", "+lan+"+ to "+TABLE_NAME);
             long result = db.insert(TABLE_NAME,null,contentValues);
             if(result == -1)
                 return false;

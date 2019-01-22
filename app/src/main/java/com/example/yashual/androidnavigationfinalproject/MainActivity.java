@@ -13,6 +13,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -74,6 +76,7 @@ import android.util.Log;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
 import org.json.JSONObject;
+import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
     private MapView mapView;
@@ -120,23 +123,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.databaseHelper = new DatabaseHelper(this);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
-        warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            GPSService.isWar = isChecked;
-            Intent i = new Intent(getApplicationContext(), GPSService.class);
-            stopService(i);
-            startService(i);
-        });
-        languageButton.setOnClickListener(v -> changeLocale());
-        navigateButton.setOnClickListener(v -> {
-            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
-            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-            destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
-            getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
-        });
-
         //Set default lang
         Paper.init(this);
-
         //English is default
         String language = Paper.book().read("language");
         if(language == null)
@@ -144,13 +132,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         updateView((String)Paper.book().read("language"));
 
+        this.connectionServer = new ConnectionServer(this);
+        registerPhoneToServer();
         if (!GPSService.state) {
             Intent i = new Intent(getApplicationContext(), GPSService.class);
             startService(i);
         }
-
-        this.connectionServer = new ConnectionServer(this);
-        downloadOfflineMap();
+//        downloadOfflineMap();
+        languageButton.setOnClickListener(v -> {
+            changeLocale();
+        });
+        navigateButton.setOnClickListener(v -> {
+            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
+            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+            destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
+            getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
+        });
     }
 
     private void downloadOfflineMap(){
@@ -232,8 +229,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Log.e(TAG, "Error: help " + error);
                     }
                 });
-
+        warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            GPSService.isWar = isChecked;
+            Intent i = new Intent(getApplicationContext(), GPSService.class);
+            stopService(i);
+            startService(i);
+        });
     }
+
+    private void registerPhoneToServer() {
+        String unique_id = Paper.book().read("unique_id");
+
+        Log.e(TAG, "onCreate: results unique_id: "+unique_id );
+        if (unique_id == null){
+            Log.d(TAG, "onCreate: unique_id: "+unique_id);
+            unique_id = FirebaseInstanceId.getInstance().getToken();
+            try {
+                connectionServer.registerOnServerMyPhoneId();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Paper.book().write("unique_id",unique_id);
+        }
+    }
+
 
     private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination){
         double distance = databaseHelper.getDistanceBetweenTwoPoints(new SafePoint(currentLocation.latitude()
@@ -241,6 +260,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ),new SafePoint(destination.latitude(),destination.altitude()));
         return (distance < 300);
     }
+
     private void showNoSafePointMessage(){
         AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
         alertDialog.setTitle(R.string.instructions_headline);
@@ -272,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
         }
         updateView((String)Paper.book().read("language"));
+        ConnectionServer.UpdateLanguageInServer();
         Intent refresh = new Intent(this, MainActivity.class);
         startActivity(refresh);
         finish();
