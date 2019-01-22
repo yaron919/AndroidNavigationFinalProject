@@ -329,7 +329,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude") &&
                 getIntent().hasExtra("redAlertId") && getIntent().hasExtra("max_time_to_arrive_to_shelter")) {
             try{
-                Log.d(TAG, "checkIntent: extras:"+getIntent().getExtras().toString());
                 Log.d(TAG, "i got an intent");
                 int alertId = Integer.parseInt(getIntent().getStringExtra("redAlertId"));
                 double lat = Double.parseDouble(getIntent().getStringExtra("latitude"));
