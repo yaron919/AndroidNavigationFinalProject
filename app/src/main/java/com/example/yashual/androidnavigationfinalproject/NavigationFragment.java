@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatDelegate;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,7 @@ public class NavigationFragment extends Fragment implements OnNavigationReadyCal
   private static final double ORIGIN_LATITUDE = 40.397389;
   private static final double DESTINATION_LONGITUDE = -3.712331;
   private static final double DESTINATION_LATITUDE = 40.401686;
+  private static final String TAG = NavigationFragment.class.getSimpleName();
 
   private NavigationView navigationView;
   private DirectionsRoute directionsRoute;
@@ -110,7 +112,7 @@ public class NavigationFragment extends Fragment implements OnNavigationReadyCal
   public void onNavigationReady(boolean isRunning) {
     Point origin = Point.fromLngLat(ORIGIN_LONGITUDE, ORIGIN_LATITUDE);
     Point destination = Point.fromLngLat(DESTINATION_LONGITUDE, DESTINATION_LATITUDE);
-    fetchRoute(origin, destination);
+    fetchRoute(origin, destination, getContext());
   }
 
   @Override
@@ -121,7 +123,7 @@ public class NavigationFragment extends Fragment implements OnNavigationReadyCal
 
   @Override
   public void onNavigationFinished() {
-    // no-op
+    Log.e(TAG, "onNavigationFinished: is Arivve to destination" );
   }
 
   @Override
@@ -154,8 +156,8 @@ public class NavigationFragment extends Fragment implements OnNavigationReadyCal
     }
   }
 
-  private void fetchRoute(Point origin, Point destination) {
-    NavigationRoute.builder(getContext())
+  private void fetchRoute(Point origin, Point destination, Context context) {
+    NavigationRoute.builder(context)
       .accessToken(Mapbox.getAccessToken())
       .origin(origin)
       .destination(destination)
@@ -186,8 +188,8 @@ public class NavigationFragment extends Fragment implements OnNavigationReadyCal
     FragmentActivity activity = getActivity();
     if (activity != null && activity instanceof FragmentNavigationActivity) {
       FragmentNavigationActivity fragmentNavigationActivity = (FragmentNavigationActivity) activity;
-      fragmentNavigationActivity.showPlaceholderFragment();
-      fragmentNavigationActivity.showNavigationFab();
+//      fragmentNavigationActivity.showPlaceholderFragment();
+//      fragmentNavigationActivity.showNavigationFab();
       updateWasNavigationStopped(true);
       updateWasInTunnel(false);
     }
@@ -224,5 +226,9 @@ public class NavigationFragment extends Fragment implements OnNavigationReadyCal
     SharedPreferences.Editor editor = preferences.edit();
     editor.putBoolean(getString(R.string.was_navigation_stopped), wasNavigationStopped);
     editor.apply();
+  }
+
+  public void setOriginAndDestination(Point originPosition, Point destinationPosition, Context context) {
+    fetchRoute(originPosition, destinationPosition, context);
   }
 }

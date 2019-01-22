@@ -108,7 +108,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
         languageButton.setOnClickListener(v -> changeLocale());
         navigateButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this,FragmentNavigationActivity.class);
+            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
+            destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
+            Intent intent = new Intent(this,testNavigationView.class);
+            intent.putExtra("positionLon",originLocation.getLongitude());
+            intent.putExtra("positionLat",originLocation.getLatitude());
+            intent.putExtra("destinationLon",destinationPosition.longitude());
+            intent.putExtra("destinationLat",destinationPosition.latitude());
             startActivity(intent);
             /*SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
