@@ -175,4 +175,30 @@ public class ConnectionServer  {
         });
         mQueue.add(request);
     }
+
+    public static void Arrive(int redAlertID){
+        String url = "http://3.121.116.91:3000/operative/arrive";
+        Log.d(TAG, "Arrive: ");
+        JSONObject jsonObj = new JSONObject();
+        try {
+            jsonObj.put("unique_id",unique_id);
+            jsonObj.put("red_alert_id",redAlertID);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "Arrive: body:" + jsonObj.toString() );
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                    Log.d(TAG, "onResponse: getSafeLocation"+response.toString());
+                    Log.d(TAG, "onResponse: before show safe location");
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+        mQueue.add(request);
+    }
 }
