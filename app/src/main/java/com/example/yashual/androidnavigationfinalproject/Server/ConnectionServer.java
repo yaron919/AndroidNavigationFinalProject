@@ -105,6 +105,7 @@ public class ConnectionServer  {
         jsonObj.put("city",cityName);
         jsonObj.put("unique_id",unique_id);
         jsonObj.put("language",language);
+        jsonObj.put("is_android",1);
         Log.d(TAG, "sendMyLocationToServer: json body:"+jsonObj.toString());
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.PUT, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
