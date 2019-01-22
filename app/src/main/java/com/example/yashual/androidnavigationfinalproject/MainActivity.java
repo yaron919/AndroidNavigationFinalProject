@@ -9,11 +9,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -22,7 +19,6 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -35,7 +31,6 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import android.location.Location;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -252,12 +247,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination){
+    private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination, int time){
         double distance = databaseHelper.getDistanceBetweenTwoPoints(
                 new SafePoint(currentLocation.latitude(),currentLocation.longitude()),
                 new SafePoint(destination.latitude(),destination.longitude()));
         Log.d(TAG, "validateDistanceToClosestPoint: distance: "+distance);
-        return (distance < 500);
+        Log.d(TAG, "validateDistanceToClosestPoint: distanceTime:" +(time*2.5) + " time:"+time);
+        Log.d(TAG, "validateDistanceToClosestPoint: rv: "+((time*2.5)>distance));
+        return ((time*2.5)>distance);
     }
 
     private void showNoSafePointMessage(){
@@ -328,20 +325,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void checkIntent(){
-        Log.e(TAG, "checkIntent: start function");
-        if (getIntent().hasExtra("redAlertId")) {
-            Log.d(TAG, "checkIntent: alert: " + getIntent().getStringExtra("redAlertId"));
-        }
-        if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude")) {
+        Log.d(TAG, "checkIntent: start function");
+        if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude") &&
+                getIntent().hasExtra("redAlertId") && getIntent().hasExtra("max_time_to_arrive_to_shelter")) {
             try{
-                Log.e(TAG, "checkIntent: extras:"+getIntent().getExtras().toString());
+                Log.d(TAG, "checkIntent: extras:"+getIntent().getExtras().toString());
                 Log.d(TAG, "i got an intent");
+                int alertId = Integer.parseInt(getIntent().getStringExtra("redAlertId"));
                 double lat = Double.parseDouble(getIntent().getStringExtra("latitude"));
                 double lan = Double.parseDouble(getIntent().getStringExtra("longitude"));
+                int time = Integer.parseInt(getIntent().getStringExtra("max_time_to_arrive_to_shelter"));
                 Log.d(TAG, "lat:"+lat+" lan:  "+lan);
-                destinationPosition = Point.fromLngLat(lat,lan);
-                originPosition = Point.fromLngLat(originLocation.getLatitude(),originLocation.getLongitude());
-                if(validateDistanceToClosestPoint(originPosition,destinationPosition)){
+                destinationPosition = Point.fromLngLat(lan,lat);
+                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+                if(validateDistanceToClosestPoint(originPosition,destinationPosition,time)){
                     getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
                 }else
                     showNoSafePointMessage();

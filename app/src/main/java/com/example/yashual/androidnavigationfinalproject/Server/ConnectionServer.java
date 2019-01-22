@@ -82,6 +82,8 @@ public class ConnectionServer  {
         }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                ArrayList <LatLng> rv = mDatabaseHelper.getPointsNear(originPosition); // get points from db
+                mainActivity.addSafeMarkerOnMap(rv);
                 error.printStackTrace();
             }
         });
