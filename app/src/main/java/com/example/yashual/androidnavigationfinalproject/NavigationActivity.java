@@ -15,6 +15,8 @@ import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.services.android.navigation.ui.v5.NavigationView;
 import com.mapbox.services.android.navigation.ui.v5.NavigationViewOptions;
 import com.mapbox.services.android.navigation.ui.v5.OnNavigationReadyCallback;
@@ -30,6 +32,7 @@ import retrofit2.Response;
 public class NavigationActivity extends AppCompatActivity implements OnNavigationReadyCallback,RouteListener, NavigationListener,ProgressChangeListener {
 
     private static final String TAG = NavigationActivity.class.getSimpleName();
+    private static final double INITIAL_ZOOM = 19;
     private NavigationView navigationView;
     private DirectionsRoute directionsRoute;
     private Point originPosition;
@@ -43,7 +46,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         navigationView = findViewById(R.id.navigation_view);
         navigationView.onCreate(savedInstanceState);
         updateNightMode();
-        navigationView.initialize(this);
+        
         Intent intent = getIntent();
         originPosition = Point.fromLngLat(intent.getDoubleExtra("positionLon",0.0),
                 intent.getDoubleExtra("positionLat",0.0));
@@ -52,6 +55,11 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         redAlertID = intent.getIntExtra("AlertID",-1);
         Log.d(TAG, "onCreate: position: "+ originPosition.toString());
         Log.d(TAG, "onCreate: dest: "+ destinationPosition.toString());
+        CameraPosition initialPosition = new CameraPosition.Builder()
+                .target(new LatLng(originPosition.latitude(), originPosition.longitude()))
+                .zoom(INITIAL_ZOOM)
+                .build();
+        navigationView.initialize(this, initialPosition);
         fetchRoute(originPosition,destinationPosition);
     }
 
