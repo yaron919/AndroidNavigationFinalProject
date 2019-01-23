@@ -11,4 +11,6 @@
     <string name="instructions_headline">Instructions</string>
     <string name="ok">OK</string>
     <string name="instructions">Lay on the ground and protect your head with your hands</string>
+    <string name="was_navigation_stopped" translatable="false">was_navigation_stopped</string>
+    <string name="was_in_tunnel" translatable="false">was_in_tunnel</string>
 </resources>

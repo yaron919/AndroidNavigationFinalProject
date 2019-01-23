@@ -9,11 +9,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -22,8 +19,6 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -35,7 +30,6 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import android.location.Location;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -54,26 +48,18 @@ import com.mapbox.mapboxsdk.offline.OfflineRegion;
 import com.mapbox.mapboxsdk.offline.OfflineRegionError;
 import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 // classes needed to add a marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 // classes to calculate a route
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
-import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
-import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 
 import io.paperdb.Paper;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import android.util.Log;
 // classes needed to launch navigation UI
-
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -147,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
             destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
-            getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
+            startNavigation(originPosition, destinationPosition, -1);
         });
     }
 
@@ -252,12 +238,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination){
+    private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination, int time){
         double distance = databaseHelper.getDistanceBetweenTwoPoints(
                 new SafePoint(currentLocation.latitude(),currentLocation.longitude()),
                 new SafePoint(destination.latitude(),destination.longitude()));
         Log.d(TAG, "validateDistanceToClosestPoint: distance: "+distance);
-        return (distance < 500);
+        Log.d(TAG, "validateDistanceToClosestPoint: distanceTime:" +(time*2.5) + " time:"+time);
+        Log.d(TAG, "validateDistanceToClosestPoint: rv: "+((time*2.5)>distance));
+        return ((time*2.5)>distance);
     }
 
     private void showNoSafePointMessage(){
@@ -297,19 +285,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         finish();
     }
 
-    private void navigationLauncherStart(){
-        Log.e(TAG, "navigationLauncherStart: start" );
-        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                .directionsRoute(currentRoute)
-                .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
-                .shouldSimulateRoute(false)
-                .waynameChipEnabled(true)
-                .build();
-        Log.e(TAG, "navigationLauncherStart: before luncher" );
-        // Call this method with Context from within an Activity
-        NavigationLauncher.startNavigation(this, options);
-    }
-
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
@@ -328,21 +303,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void checkIntent(){
-        Log.e(TAG, "checkIntent: start function");
-        if (getIntent().hasExtra("redAlertId")) {
-            Log.d(TAG, "checkIntent: alert: " + getIntent().getStringExtra("redAlertId"));
-        }
-        if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude")) {
+        Log.d(TAG, "checkIntent: start function");
+        if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude") &&
+                getIntent().hasExtra("redAlertId") && getIntent().hasExtra("max_time_to_arrive_to_shelter")) {
             try{
-                Log.e(TAG, "checkIntent: extras:"+getIntent().getExtras().toString());
                 Log.d(TAG, "i got an intent");
+                int alertId = Integer.parseInt(getIntent().getStringExtra("redAlertId"));
                 double lat = Double.parseDouble(getIntent().getStringExtra("latitude"));
                 double lan = Double.parseDouble(getIntent().getStringExtra("longitude"));
+                int time = Integer.parseInt(getIntent().getStringExtra("max_time_to_arrive_to_shelter"));
                 Log.d(TAG, "lat:"+lat+" lan:  "+lan);
-                destinationPosition = Point.fromLngLat(lat,lan);
-                originPosition = Point.fromLngLat(originLocation.getLatitude(),originLocation.getLongitude());
-                if(validateDistanceToClosestPoint(originPosition,destinationPosition)){
-                    getRoute(originPosition, destinationPosition); // example routing NEED TO ADD DB SEARCH FOR DEST
+                destinationPosition = Point.fromLngLat(lan,lat);
+                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
+                if(validateDistanceToClosestPoint(originPosition,destinationPosition,time)){
+                    startNavigation(originPosition, destinationPosition, alertId); // example routing NEED TO ADD DB SEARCH FOR DEST
                 }else
                     showNoSafePointMessage();
             }catch(Exception e){
@@ -351,43 +325,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void getRoute(Point origin, Point destination) {
-        NavigationRoute.builder(this)
-                .accessToken(Mapbox.getAccessToken())
-                .origin(origin)
-                .profile(DirectionsCriteria.PROFILE_WALKING)
-                .destination(destination)
-                .build()
-                .getRoute(new Callback<DirectionsResponse>() {
-                    @Override
-                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                        // You can get the generic HTTP info about the response
-                        Log.d(TAG, "Response code: " + response.code());
-                        if (response.body() == null) {
-                            Log.e(TAG, "No routes found, make sure you set the right user and access token.");
-                            return;
-                        } else if (response.body().routes().size() < 1) {
-                            Log.e(TAG, "No routes found");
-                            return;
-                        }
-
-                        currentRoute = response.body().routes().get(0);
-
-                        // Draw the route on the map
-                        if (navigationMapRoute != null) {
-                            navigationMapRoute.removeRoute();
-                        } else {
-                            navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
-                        }
-                        navigationMapRoute.addRoute(currentRoute);
-                        navigationLauncherStart();
-                    }
-
-                    @Override
-                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: " + throwable.getMessage());
-                    }
-                });
+    private void startNavigation(Point originPosition, Point destinationPosition, int alertId) {
+        Intent intent = new Intent(this,NavigationActivity.class);
+        intent.putExtra("positionLon",originPosition.longitude());
+        intent.putExtra("positionLat",originPosition.latitude());
+        intent.putExtra("destinationLon",destinationPosition.longitude());
+        intent.putExtra("destinationLat",destinationPosition.latitude());
+        intent.putExtra("AlertID", alertId);
+        startActivity(intent);
     }
 
     @SuppressWarnings({"MissingPermission"})
