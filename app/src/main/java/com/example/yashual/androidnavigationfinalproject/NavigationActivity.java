@@ -1,5 +1,6 @@
 package com.example.yashual.androidnavigationfinalproject;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,6 +22,7 @@ import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
+import com.mapbox.api.directions.v5.models.VoiceInstructions;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -146,8 +148,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        navigationView.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
+        navigationView.onSaveInstanceState(outState);
     }
 
     @Override
@@ -158,23 +160,23 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onPause() {
-        timer.cancel();
         super.onPause();
         navigationView.onPause();
+        timer.cancel();
     }
 
     @Override
     public void onStop() {
-        timer.cancel();
         super.onStop();
         navigationView.onStop();
+        timer.cancel();
     }
 
     @Override
     protected void onDestroy() {
-        timer.cancel();
         super.onDestroy();
         navigationView.onDestroy();
+        timer.cancel();
     }
 
     @Override
@@ -189,8 +191,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onCancelNavigation() {
+//        stopNavigation();
         navigationView.stopNavigation();
-        stopNavigation();
         finish();
     }
 
@@ -229,6 +231,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
                 .directionsProfile(DirectionsCriteria.PROFILE_WALKING)
                 .progressChangeListener(this)
                 .build();
+        Log.d(TAG, "startNavigation: options: "+options.toString());
         navigationView.startNavigation(options);
     }
 
