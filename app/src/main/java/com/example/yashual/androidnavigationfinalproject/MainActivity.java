@@ -20,6 +20,7 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -236,6 +237,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+        if (!unique_id.equals(FirebaseInstanceId.getInstance().getToken()))
+        {
+            Log.d(TAG, "registerPhoneToServer: firebase instance change");
+            connectionServer.updateFirebaseInstance(unique_id);
         }
     }
 
