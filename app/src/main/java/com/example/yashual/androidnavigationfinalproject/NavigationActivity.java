@@ -191,6 +191,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     public void onCancelNavigation() {
         navigationView.stopNavigation();
         stopNavigation();
+        finish();
     }
 
     @Override
@@ -309,5 +310,6 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     public void onArrival() {
         if (fromNotification)
             ConnectionServer.Arrive(redAlertID);
+        finish();
     }
 }
