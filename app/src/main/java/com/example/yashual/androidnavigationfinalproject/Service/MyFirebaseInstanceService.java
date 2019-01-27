@@ -65,8 +65,8 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
 
         // Create an Intent for the activity you want to start
         Intent resultIntent = new Intent(this, MainActivity.class);
-        resultIntent.putExtra("lat",data.get("lat"));
-        resultIntent.putExtra("lan",data.get("lan"));
+        resultIntent.putExtra("latitude",data.get("lat"));
+        resultIntent.putExtra("longitude",data.get("lan"));
         //      Create the TaskStackBuilder and add the intent, which inflates the back stack
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addNextIntent(resultIntent);
