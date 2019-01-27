@@ -3,13 +3,16 @@ package com.example.yashual.androidnavigationfinalproject;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
+import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
@@ -26,6 +29,7 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener;
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress;
 
+import io.paperdb.Paper;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -39,14 +43,15 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private Point destinationPosition;
     private int redAlertID;
     private boolean fromNotification = false;
+    private TextView timerText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
         navigationView = findViewById(R.id.navigation_view);
+        timerText = findViewById(R.id.timerText);
         navigationView.onCreate(savedInstanceState);
         updateNightMode();
-        
         Intent intent = getIntent();
         originPosition = Point.fromLngLat(intent.getDoubleExtra("positionLon",0.0),
                 intent.getDoubleExtra("positionLat",0.0));
@@ -63,6 +68,25 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
                 .build();
         navigationView.initialize(this, initialPosition);
         fetchRoute(originPosition,destinationPosition);
+        updateView((String)Paper.book().read("language"));
+        startTimer(45);
+    }
+
+    private void updateView(String language) {
+        LocaleHelper.setLocale(this,language);
+    }
+
+    private void startTimer(int time){
+        new CountDownTimer(time*1000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                timerText.setText(getString(R.string.seconds_remain)+millisUntilFinished / 1000);
+            }
+            public void onFinish() {
+                timerText.setText("done!");
+            }
+        }.start();
+
     }
 
     @Override
