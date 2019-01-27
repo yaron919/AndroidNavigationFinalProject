@@ -38,7 +38,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private Point originPosition;
     private Point destinationPosition;
     private int redAlertID;
-
+    private boolean fromNotification = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +53,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         destinationPosition = Point.fromLngLat(intent.getDoubleExtra("destinationLon",0.0),
                 intent.getDoubleExtra("destinationLat",0.0));
         redAlertID = intent.getIntExtra("AlertID",-1);
+        if (redAlertID != -1)
+            fromNotification = true;
         Log.d(TAG, "onCreate: position: "+ originPosition.toString());
         Log.d(TAG, "onCreate: dest: "+ destinationPosition.toString());
         CameraPosition initialPosition = new CameraPosition.Builder()
@@ -249,6 +251,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onArrival() {
-        ConnectionServer.Arrive(redAlertID);
+        if (fromNotification)
+            ConnectionServer.Arrive(redAlertID);
     }
 }
