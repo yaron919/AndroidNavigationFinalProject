@@ -1,7 +1,9 @@
 package com.example.yashual.androidnavigationfinalproject;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.location.Location;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
@@ -44,6 +46,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private int redAlertID;
     private boolean fromNotification = false;
     private TextView timerText;
+    private Resources resources;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,14 +76,16 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     private void updateView(String language) {
-        LocaleHelper.setLocale(this,language);
+        Context context = LocaleHelper.setLocale(this,language);
+        resources = context.getResources();
+
     }
 
     private void startTimer(int time){
         new CountDownTimer(time*1000, 1000) {
 
             public void onTick(long millisUntilFinished) {
-                timerText.setText(getString(R.string.seconds_remain)+millisUntilFinished / 1000);
+                timerText.setText(resources.getString(R.string.seconds_remain)+millisUntilFinished / 1000);
             }
             public void onFinish() {
                 timerText.setText("done!");

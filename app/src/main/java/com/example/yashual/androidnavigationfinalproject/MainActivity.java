@@ -394,7 +394,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onPause() {
         super.onPause();
         mapView.onPause();
-        if (offlineManager != null) {
+/*        if (offlineManager != null) {
             offlineManager.listOfflineRegions(new OfflineManager.ListOfflineRegionsCallback() {
                 @Override
                 public void onList(OfflineRegion[] offlineRegions) {
@@ -423,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.e(TAG, "onListError: " + error);
                 }
             });
-        }
+        }*/
     }
 
 
