@@ -51,6 +51,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private TextView timerText;
     private Resources resources;
     private CountDownTimer timer;
+    private int timeToDistance;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,9 +65,11 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
                 intent.getDoubleExtra("positionLat",0.0));
         destinationPosition = Point.fromLngLat(intent.getDoubleExtra("destinationLon",0.0),
                 intent.getDoubleExtra("destinationLat",0.0));
+        timeToDistance = intent.getIntExtra("timeToDistance",99);
         redAlertID = intent.getIntExtra("AlertID",-1);
         if (redAlertID != -1)
             fromNotification = true;
+
         Log.d(TAG, "onCreate: position: "+ originPosition.toString());
         Log.d(TAG, "onCreate: dest: "+ destinationPosition.toString());
         CameraPosition initialPosition = new CameraPosition.Builder()
@@ -75,8 +78,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
                 .build();
         navigationView.initialize(this, initialPosition);
         fetchRoute(originPosition,destinationPosition);
-        updateView((String)Paper.book().read("language"));
-        startTimer(10);
+        updateView(Paper.book().read("language"));
+        startTimer(timeToDistance);
     }
 
     private void updateView(String language) {

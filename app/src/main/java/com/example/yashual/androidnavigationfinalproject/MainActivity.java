@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
             destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
-            startNavigation(originPosition, destinationPosition, -1);
+            startNavigation(originPosition, destinationPosition, -1,99);
         });
     }
 
@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 destinationPosition = Point.fromLngLat(lan,lat);
                 originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
                 if(validateDistanceToClosestPoint(originPosition,destinationPosition,time)){
-                    startNavigation(originPosition, destinationPosition, alertId); // example routing NEED TO ADD DB SEARCH FOR DEST
+                    startNavigation(originPosition, destinationPosition, alertId,time); // example routing NEED TO ADD DB SEARCH FOR DEST
                 }else
                     showNoSafePointMessage();
             }catch(Exception e){
@@ -328,13 +328,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void startNavigation(Point originPosition, Point destinationPosition, int alertId) {
+    private void startNavigation(Point originPosition, Point destinationPosition, int alertId,int timeToDistance) {
         Intent intent = new Intent(this,NavigationActivity.class);
         intent.putExtra("positionLon",originPosition.longitude());
         intent.putExtra("positionLat",originPosition.latitude());
         intent.putExtra("destinationLon",destinationPosition.longitude());
         intent.putExtra("destinationLat",destinationPosition.latitude());
         intent.putExtra("AlertID", alertId);
+        intent.putExtra("timeToDistance",timeToDistance);
         startActivity(intent);
     }
 
