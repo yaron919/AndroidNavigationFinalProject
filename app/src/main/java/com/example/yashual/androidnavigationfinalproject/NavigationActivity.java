@@ -1,12 +1,14 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.location.Location;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDelegate;
@@ -47,6 +49,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private boolean fromNotification = false;
     private TextView timerText;
     private Resources resources;
+    private CountDownTimer timer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,7 +75,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         navigationView.initialize(this, initialPosition);
         fetchRoute(originPosition,destinationPosition);
         updateView((String)Paper.book().read("language"));
-        startTimer(45);
+        startTimer(10);
     }
 
     private void updateView(String language) {
@@ -81,14 +84,28 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     }
 
+    private void showNoSafePointMessage(){
+        AlertDialog alertDialog = new AlertDialog.Builder(NavigationActivity.this).create();
+        alertDialog.setTitle(R.string.instructions_headline);
+        alertDialog.setMessage(getResources().getString(R.string.instructions));
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getResources().getString(R.string.ok),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+    }
+
     private void startTimer(int time){
-        new CountDownTimer(time*1000, 1000) {
+        timer = new CountDownTimer(time*1000, 1000) {
 
             public void onTick(long millisUntilFinished) {
                 timerText.setText(resources.getString(R.string.seconds_remain)+millisUntilFinished / 1000);
             }
             public void onFinish() {
-                timerText.setText("done!");
+                timerText.setText("");
+                showNoSafePointMessage();
             }
         }.start();
 
@@ -115,6 +132,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     @Override
     public void onBackPressed() {
 // If the navigation view didn't need to do anything, call super
+        timer.cancel();
         if (!navigationView.onBackPressed()) {
             super.onBackPressed();
         }
@@ -134,18 +152,21 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onPause() {
+        timer.cancel();
         super.onPause();
         navigationView.onPause();
     }
 
     @Override
     public void onStop() {
+        timer.cancel();
         super.onStop();
         navigationView.onStop();
     }
 
     @Override
     protected void onDestroy() {
+        timer.cancel();
         super.onDestroy();
         navigationView.onDestroy();
     }
