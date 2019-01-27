@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
@@ -95,6 +96,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
                     }
                 });
         alertDialog.show();
+        final MediaPlayer mp = MediaPlayer.create(NavigationActivity.this, R.raw.to_the_point);
+        mp.start();
     }
 
     private void startTimer(int time){

@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
@@ -259,6 +260,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 });
         alertDialog.show();
+        final MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.to_the_point);
+        mp.start();
     }
 
     private void updateView(String language) {
