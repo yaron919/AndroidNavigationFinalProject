@@ -38,6 +38,7 @@ public class ConnectionServer  {
     private SafePoint originPosition;
     private static String unique_id;
     private static Geocoder geocoder;
+    private static final String URL_BASE = "http://18.130.17.203:3000";
 
 
     public ConnectionServer (Context context){
@@ -51,7 +52,7 @@ public class ConnectionServer  {
 
     public void getSafeLocation(double lat, double lan){
         this.originPosition = new SafePoint(lat,lan);
-        String url = "http://3.121.116.91:3000/operative/closestShelters";
+        String url = URL_BASE + "/operative/closestShelters";
         JSONObject jsonObj = new JSONObject();
         try {
             jsonObj.put("unique_id",unique_id);
@@ -100,7 +101,7 @@ public class ConnectionServer  {
                 language = "hebrew";
                 break;
         }
-        String url = "http://3.121.116.91:3000/idle/update";
+        String url = URL_BASE+"/idle/update";
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("lat",lat);
         jsonObj.put("lang",lan);
@@ -125,7 +126,7 @@ public class ConnectionServer  {
 
     public static void registerOnServerMyPhoneId() throws JSONException {
         Log.d(TAG, "registerOnServerMyPhoneId: start function");
-        String url = "http://3.121.116.91:3000/idle/register";
+        String url = URL_BASE+"/idle/register";
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("unique_id",unique_id);
         jsonObj.put("is_android",1);
@@ -146,7 +147,7 @@ public class ConnectionServer  {
     }
 
     public static void UpdateLanguageInServer (){
-        String url = String.format("http://3.121.116.91:3000/idle/preferred_language");
+        String url = String.format(URL_BASE+"/idle/preferred_language");
         Log.e(TAG, "UpdateLanguageInServer: url: "+url);
         String language = Locale.getDefault().getDisplayLanguage().toLowerCase();
         switch(language) {
@@ -177,7 +178,7 @@ public class ConnectionServer  {
     }
 
     public static void Arrive(int redAlertID){
-        String url = "http://3.121.116.91:3000/operative/arrive";
+        String url = URL_BASE+"/operative/arrive";
         Log.d(TAG, "Arrive: ");
         JSONObject jsonObj = new JSONObject();
         try {
@@ -204,7 +205,7 @@ public class ConnectionServer  {
 
     public static void updateFirebaseInstance(String prev_id)  {
         Log.d(TAG, "updateFirebaseInstance: start function");
-        String url = "http://3.121.116.91:3000/idle/register";
+        String url = URL_BASE+"/idle/register";
         JSONObject jsonObj = new JSONObject();
         try {
             jsonObj.put("unique_id",unique_id);
