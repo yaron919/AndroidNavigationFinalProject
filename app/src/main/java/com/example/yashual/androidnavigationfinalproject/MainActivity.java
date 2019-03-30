@@ -28,7 +28,6 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
-import com.example.yashual.androidnavigationfinalproject.Service.LocationService;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
@@ -460,8 +459,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_war_mode) {
-
-
+            warSwitch.setChecked(!warSwitch.isChecked());
         } else if (id == R.id.nav_language) {
             changeLocale();
         } else if (id == R.id.nav_areas) {
