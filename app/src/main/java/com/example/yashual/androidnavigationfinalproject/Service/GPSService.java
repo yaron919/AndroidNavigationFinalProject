@@ -1,14 +1,20 @@
 package com.example.yashual.androidnavigationfinalproject.Service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import com.example.yashual.androidnavigationfinalproject.NavigationActivity;
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 
 import org.json.JSONException;
@@ -17,13 +23,13 @@ import java.io.IOException;
 
 
 public class GPSService extends Service {
-    private static final String TAG = "BOOMBOOMTESTGPS";
+    private static final String TAG = GPSService.class.getSimpleName();
     public static boolean state;
-    public static boolean isWar;
+    public static boolean isWar = false;
     public LocationManager mLocationManager = null;
     private static int LOCATION_INTERVAL = 1000;
     private static float LOCATION_DISTANCE = 1300f;
-    private class LocationListener implements android.location.LocationListener
+    public class LocationListener implements android.location.LocationListener
     {
         Location mLastLocation;
 
@@ -78,20 +84,21 @@ public class GPSService extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
+    public void onCreate()
     {
-        Log.d(TAG, "onStartCommand");
-        super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
+        super.onCreate();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForeground(12345678, getNotification());
+        }
     }
 
     @Override
-    public void onCreate()
+    public int onStartCommand(Intent intent, int flags, int startId)
     {
-        Log.d(TAG, "onCreate");
-        state = true;
+        super.onStartCommand(intent, flags, startId);
         initializeLocationManager();
         ChangeWarMode(isWar);
+        return START_STICKY;
     }
 
     private void ChangeWarMode(boolean isWarMode){
@@ -138,7 +145,6 @@ public class GPSService extends Service {
                 }
             }
         }
-        state = false;
     }
 
     private void initializeLocationManager() {
@@ -147,4 +153,22 @@ public class GPSService extends Service {
             mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         }
     }
+
+    private Notification getNotification() {
+        NotificationChannel channel = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            channel = new NotificationChannel(
+                    "channel_02",
+                    "My Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
+        Notification.Builder builder = new Notification.Builder(getApplicationContext(), "channel_02");
+        return builder.build();
+        }
+        return null;
+    }
+
+
 }

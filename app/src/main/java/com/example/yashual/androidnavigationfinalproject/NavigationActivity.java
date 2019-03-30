@@ -36,6 +36,8 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener;
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress;
 
+import java.util.Locale;
+
 import io.paperdb.Paper;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -205,8 +207,10 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     }
     private void fetchRoute(Point origin, Point destination) {
+        Log.e(TAG, "fetchRoute: "+Locale.getDefault().getDisplayLanguage() );
         NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
+                .voiceUnits(DirectionsCriteria.METRIC)
                 .origin(origin)
                 .profile(DirectionsCriteria.PROFILE_WALKING)
                 .destination(destination)

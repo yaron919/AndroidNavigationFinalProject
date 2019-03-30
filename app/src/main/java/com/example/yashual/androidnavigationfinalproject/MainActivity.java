@@ -1,18 +1,26 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
@@ -20,11 +28,14 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
+import com.example.yashual.androidnavigationfinalproject.Service.LocationService;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
+import com.mapbox.mapboxsdk.location.OnCameraTrackingChangedListener;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.geojson.Point;
@@ -32,6 +43,8 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import android.location.Location;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -66,7 +79,7 @@ import android.util.Log;
 import org.json.JSONObject;
 import org.json.JSONException;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener, NavigationView.OnNavigationItemSelectedListener {
     private MapView mapView;
     // variables for adding location layer
     private MapboxMap mapboxMap;
@@ -75,24 +88,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // variables for calculating and drawing a route
     private Point originPosition;
     private Point destinationPosition;
-    private DirectionsRoute currentRoute;
-    private static final String TAG = "DirectionsActivity";
-    private NavigationMapRoute navigationMapRoute;
+    private static final String TAG = "MainActivity";
     private ConnectionServer connectionServer;
     private Button navigateButton;
     private DatabaseHelper databaseHelper;
     private List<LatLng> safeList;
     private ImageButton languageButton;
     private Switch warSwitch;
-
-    //offline maps
-    private boolean isEndNotified;
-    private ProgressBar progressBar;
-    private OfflineManager offlineManager;
-
-    // JSON encoding/decoding
-    public static final String JSON_CHARSET = "UTF-8";
-    public static final String JSON_FIELD_REGION_NAME = "FIELD_REGION_NAME";
+    private DrawerLayout mDrawerLayout;
+    private boolean mSlideState = false;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -104,9 +108,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
-        languageButton = findViewById(R.id.languageButton);
+//        languageButton = findViewById(R.id.nav_language);
         mapView = findViewById(R.id.mapView);
-        warSwitch = (Switch) findViewById(R.id.warSwitch);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        warSwitch = (Switch) navigationView.getMenu().findItem(R.id.nav_war_mode).getActionView().findViewById(R.id.warSwitch);
         navigateButton = findViewById(R.id.navigateButton);
         this.databaseHelper = new DatabaseHelper(this);
         mapView.onCreate(savedInstanceState);
@@ -117,107 +123,46 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         String language = Paper.book().read("language");
         if(language == null)
             Paper.book().write("language","en");
+        if(Paper.book().read("sound") == null)
+            Paper.book().write("sound","True");
 
+        View bar = findViewById(R.id.include_bar);
+        ImageButton imageButton = bar.findViewById(R.id.nav_view_btn);
+        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        imageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDrawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
 
         updateView((String)Paper.book().read("language"));
 
         this.connectionServer = new ConnectionServer(this);
         registerPhoneToServer();
-        if (!GPSService.state) {
-            Intent i = new Intent(getApplicationContext(), GPSService.class);
-            startService(i);
-        }
-//        downloadOfflineMap();
-        languageButton.setOnClickListener(v -> {
-            changeLocale();
-        });
+//        if (!GPSService.state) {
+//            Intent i = new Intent(getApplicationContext(), GPSService.class);
+//            startService(i);
+//        }
+//        languageButton.setOnClickListener(v -> {
+//            changeLocale();
+//        });
         navigateButton.setOnClickListener(v -> {
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
             originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-            destinationPosition = Point.fromLngLat(destSafePoint.getLan(), destSafePoint.getLat());
-            startNavigation(originPosition, destinationPosition, -1,99);
+            LatLng originLatLng = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
+            LatLng destLatLng = new LatLng(destSafePoint.getLat(), destSafePoint.getLan());
+//            destinationPosition = Point.fromLngLat(destSafePoint.getLan(),destSafePoint.getLat());
+            List<LatLng> points = new ArrayList<>();
+            Log.d(TAG, "onCreate: lat"+destLatLng.getLatitude()+" lan:"+destLatLng.getLongitude());
+            points.add(originLatLng);
+            points.add(destLatLng);
+            polyLineDraw(points);
+//            startNavigation(originPosition, destinationPosition, -1,99);
         });
-    }
-
-    private void downloadOfflineMap(){
-
-        //Set up offline manager
-        offlineManager = OfflineManager.getInstance(MainActivity.this);
-        LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                .include(new LatLng(35.225, 33.248)) // Northeast
-                .include(new LatLng(34.445, 30.942)) // Southwest
-                .build();
-        // Define the offline region
-        Log.e(TAG, "Inside offline");
-        OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
-                "mapbox://styles/yaron919/cjr64dzlf36g02slfo0s3zzkm",
-                latLngBounds,
-                6,
-                13,
-                MainActivity.this.getResources().getDisplayMetrics().density);
-        // Set the metadata
-        byte[] metadata;
-        try {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put(JSON_FIELD_REGION_NAME, "Metola to bear sheva");
-            String json = jsonObject.toString();
-            metadata = json.getBytes(JSON_CHARSET);
-        } catch (Exception exception) {
-            Log.e(TAG, "Failed to encode metadata: " + exception.getMessage());
-            metadata = null;
-        }
-        // Create the region asynchronously
-        offlineManager.createOfflineRegion(
-                definition,
-                metadata,
-                new OfflineManager.CreateOfflineRegionCallback() {
-                    @Override
-                    public void onCreate(OfflineRegion offlineRegion) {
-                        offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
-                        // Display the download progress bar
-                        //       progressBar = (ProgressBar) findViewById(R.id.progress_bar);
-                        //       startProgress();
-
-                        // Monitor the download progress using setObserver
-                        offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
-                            @Override
-                            public void onStatusChanged(OfflineRegionStatus status) {
-                                Log.e(TAG, "Download started");
-                                // Calculate the download percentage and update the progress bar
-                                double percentage = status.getRequiredResourceCount() >= 0
-                                        ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
-                                        0.0;
-
-                                if (status.isComplete()) {
-                                    Log.e(TAG, "Download complete");
-                                    // Download complete
-                                   //      endProgress("done");
-                                } else if (status.isRequiredResourceCountPrecise()) {
-                                    // Switch to determinate state
-                                    //      setPercentage((int) Math.round(percentage));
-                                }
-                            }
-
-                            @Override
-                            public void onError(OfflineRegionError error) {
-                                // If an error occurs, print to logcat
-                                Log.e(TAG, "onError reason: " + error.getReason());
-                                Log.e(TAG, "onError message: " + error.getMessage());
-                            }
-
-                            @Override
-                            public void mapboxTileCountLimitExceeded(long limit) {
-                                // Notify if offline region exceeds maximum tile count
-                                Log.e(TAG, "Mapbox tile count limit exceeded: " + limit);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        Log.e(TAG, "Error: help " + error);
-                    }
-                });
+//        GPSService.isWar = false;
+        Intent intent = new Intent(getApplicationContext(), GPSService.class);
+        startService(intent);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             GPSService.isWar = isChecked;
             Intent i = new Intent(getApplicationContext(), GPSService.class);
@@ -226,6 +171,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
     private void registerPhoneToServer() {
         String unique_id = Paper.book().read("unique_id");
 
@@ -300,6 +255,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         enableLocationComponent();
         checkIntent();
         connectionServer.getSafeLocation(this.originLocation.getLatitude(), this.originLocation.getLongitude());
+
+    }
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     public void addSafeMarkerOnMap(List<LatLng> list) {
@@ -343,6 +308,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         intent.putExtra("AlertID", alertId);
         intent.putExtra("timeToDistance",timeToDistance);
         startActivity(intent);
+//        showNoSafePointMessage();
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -354,9 +320,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
             locationComponent.activateLocationComponent(this);
             locationComponent.setLocationComponentEnabled(true);
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+            locationComponent.setRenderMode(RenderMode.GPS);
             // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING);
+            locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
+            /*locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
+                @Override
+                public void onCameraTrackingDismissed() {
+                    
+                }
+
+                @Override
+                public void onCameraTrackingChanged(int currentMode) {
+                    polyLineDraw(points)
+                }
+            });*/
 
             this.originLocation = getLastBestLocation();
             if (this.originLocation == null)
@@ -404,36 +381,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onPause() {
         super.onPause();
         mapView.onPause();
-/*        if (offlineManager != null) {
-            offlineManager.listOfflineRegions(new OfflineManager.ListOfflineRegionsCallback() {
-                @Override
-                public void onList(OfflineRegion[] offlineRegions) {
-                    if (offlineRegions.length > 0) {
-                        // delete the last item in the offlineRegions list which will be yosemite offline map
-                        offlineRegions[(offlineRegions.length - 1)].delete(new OfflineRegion.OfflineRegionDeleteCallback() {
-                            @Override
-                            public void onDelete() {
-                                Toast.makeText(
-                                        MainActivity.this,
-                                        getString(R.string.project_id),
-                                        Toast.LENGTH_LONG
-                                ).show();
-                            }
-
-                            @Override
-                            public void onError(String error) {
-                                Log.e(TAG, "On Delete error: " + error);
-                            }
-                        });
-                    }
-                }
-
-                @Override
-                public void onError(String error) {
-                    Log.e(TAG, "onListError: " + error);
-                }
-            });
-        }*/
     }
 
 
@@ -489,7 +436,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void changeCameraLocation(Location location){
         CameraPosition position = new CameraPosition.Builder()
                 .target(new LatLng(location.getLatitude(), location.getLongitude())) // Sets the new camera position
-                .zoom(19) // Sets the zoom
+                .zoom(12) // Sets the zoom
                 .bearing(180) // Rotate the camera
                 .tilt(30) // Set the camera tilt
                 .build(); // Creates a CameraPosition from the builder
@@ -497,35 +444,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapboxMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(position), 7000);
     }
-
-
-    // Progress bar methods
-    private void startProgress() {
-
-        // Start and show the progress bar
-        isEndNotified = false;
-        progressBar.setIndeterminate(true);
-        progressBar.setVisibility(View.VISIBLE);
+    private void polyLineDraw(List<LatLng> points){
+        this.mapboxMap.addPolyline(new PolylineOptions()
+                .addAll(points)
+                .color(Color.parseColor("#3bb2d0"))
+                .width(2));
     }
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
 
-    private void setPercentage(final int percentage) {
-        progressBar.setIndeterminate(false);
-        progressBar.setProgress(percentage);
-    }
+        if (id == R.id.nav_locations) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_war_mode) {
 
-    private void endProgress(final String message) {
-        // Don't notify more than once
-        if (isEndNotified) {
-            return;
-       }
 
-        // Stop and hide the progress bar
-        isEndNotified = true;
-        progressBar.setIndeterminate(false);
-        progressBar.setVisibility(View.GONE);
+        } else if (id == R.id.nav_language) {
+            changeLocale();
+        } else if (id == R.id.nav_areas) {
+//            Intent intent = new Intent(this, MainActivity.class);
+//            startActivity(intent);
+        } else if (id == R.id.nav_sound) {
+            if (Paper.book().read("sound").equals("True")) {
+                Paper.book().write("sound", "False");
+                Log.d(TAG, "onNavigationItemSelected: sounds False" );
+            }
+            else{
+                Log.d(TAG, "onNavigationItemSelected: sounds True" );
+                Paper.book().write("sound","True");
+            }
+        }
 
-        // Show a toast
-        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
-

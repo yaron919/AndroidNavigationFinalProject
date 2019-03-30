@@ -1,13 +1,13 @@
 <resources>
     <style name="SwitchCompatStyle" >
-        <item name="thumbTint">@color/pure_red</item>
-        <item name="trackTint">@color/pure_red</item>
+        <item name="thumbTint">@color/mapboxWhite</item>
+        <item name="trackTint">@color/mapboxWhite</item>
     </style>
 
     <style name="MySwitch" parent="@style/Widget.AppCompat.CompoundButton.Switch">
-        <item name="android:thumbTint">@color/switch_color</item>
-        <item name="android:trackTint">@color/switch_color</item>
-        <item name="colorAccent">@color/pure_red</item>
+        <item name="android:thumbTint">@color/gray_on</item>
+        <item name="android:trackTint">@color/gray_on</item>
+        <item name="colorAccent">@color/mapboxWhite</item>
         <item name="android:textAppearance">@style/TextAppearance.AppCompat</item>
     </style>
 

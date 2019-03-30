@@ -95,6 +95,7 @@ public class ConnectionServer  {
         Log.d(TAG, "sendMyLocationToServer: start function");
         List<Address> addresses = geocoder.getFromLocation(lat, lan, 1);
         String cityName = addresses.get(0).getLocality().toLowerCase();
+        cityName = cityName.replaceAll("\\s+","");
         String language = Locale.getDefault().getDisplayLanguage().toLowerCase();
         switch(language) {
             case("עברית"):

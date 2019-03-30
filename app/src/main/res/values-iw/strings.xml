@@ -13,4 +13,8 @@
     <string name="instructions_headline">הוראות</string>
     <string name="ok">בסדר</string>
     <string name="seconds_remain">זמן נותר: </string>
+    <string name="menu_location">מקומות מחסה</string>
+    <string name="menu_war_mode">מצב מלחמה</string>
+    <string name="menu_areas">אזורים</string>
+    <string name="menu_sound">צלילים</string>
 </resources>
