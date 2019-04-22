@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.example.yashual.androidnavigationfinalproject.SafePoint;
-import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,11 +165,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public SafePoint getNearestSafeLocation(List<LatLng> list,SafePoint currentLocation){
         double shortestDistance;
         double distance;
-        SafePoint nearest_location = new SafePoint(list.get(0).getLatitude(),list.get(0).getLongitude());
+        SafePoint nearest_location = new SafePoint(list.get(0).latitude,list.get(0).longitude);
         shortestDistance = getDistanceBetweenTwoPoints(currentLocation,nearest_location);
         for(int i = 0 ; i < list.size() ; i++)
         {
-            SafePoint safePointInList = new SafePoint(list.get(i).getLatitude(),list.get(i).getLongitude());
+            SafePoint safePointInList = new SafePoint(list.get(i).latitude,list.get(i).longitude);
             distance = getDistanceBetweenTwoPoints(currentLocation,safePointInList);
             if(distance < shortestDistance){
                 shortestDistance = distance;

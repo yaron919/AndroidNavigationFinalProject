@@ -11,10 +11,8 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import com.example.yashual.androidnavigationfinalproject.NavigationActivity;
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 
 import org.json.JSONException;

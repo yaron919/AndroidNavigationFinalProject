@@ -18,4 +18,5 @@
     <string name="menu_war_mode">War Mode</string>
     <string name="menu_areas">Areas</string>
     <string name="menu_sound">Sounde</string>
+    <string name="title_activity_maps" translatable="false">Map</string>
 </resources>

@@ -15,12 +15,10 @@ import android.graphics.Color;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
@@ -28,65 +26,39 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.PolylineOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.geometry.LatLngBounds;
-import com.mapbox.mapboxsdk.location.OnCameraTrackingChangedListener;
-import com.mapbox.mapboxsdk.location.modes.RenderMode;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.geojson.Point;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 import android.location.Location;
-import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import android.support.annotation.NonNull;
-
-import com.mapbox.mapboxsdk.location.LocationComponent;
-import com.mapbox.mapboxsdk.location.modes.CameraMode;
-import com.mapbox.mapboxsdk.offline.OfflineManager;
-import com.mapbox.mapboxsdk.offline.OfflineRegion;
-import com.mapbox.mapboxsdk.offline.OfflineRegionError;
-import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
-import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
-import com.mapbox.android.core.permissions.PermissionsListener;
-import com.mapbox.android.core.permissions.PermissionsManager;
-// classes needed to add a marker
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-// classes to calculate a route
-import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
-import com.mapbox.api.directions.v5.models.DirectionsRoute;
 
 import io.paperdb.Paper;
 
 import android.util.Log;
 // classes needed to launch navigation UI
-
-import org.json.JSONObject;
 import org.json.JSONException;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener, NavigationView.OnNavigationItemSelectedListener {
-    private MapView mapView;
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener{
+    private GoogleMap mMap;
     // variables for adding location layer
-    private MapboxMap mapboxMap;
-    private PermissionsManager permissionsManager;
-    private Location originLocation;
     // variables for calculating and drawing a route
-    private Point originPosition;
-    private Point destinationPosition;
+    private LatLng originPosition;
+    private LatLng destinationPosition;
     private static final String TAG = "MainActivity";
     private ConnectionServer connectionServer;
     private Button navigateButton;
@@ -105,17 +77,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_main);
 //        languageButton = findViewById(R.id.nav_language);
-        mapView = findViewById(R.id.mapView);
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapView);
+        mapFragment.getMapAsync(this);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        warSwitch = (Switch) navigationView.getMenu().findItem(R.id.nav_war_mode).getActionView().findViewById(R.id.warSwitch);
+        warSwitch = navigationView.getMenu().findItem(R.id.nav_war_mode).getActionView().findViewById(R.id.warSwitch);
         navigateButton = findViewById(R.id.navigateButton);
         this.databaseHelper = new DatabaseHelper(this);
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
         //Set default lang
         Paper.init(this);
         //English is default
@@ -127,15 +98,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         View bar = findViewById(R.id.include_bar);
         ImageButton imageButton = bar.findViewById(R.id.nav_view_btn);
-        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-        imageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDrawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        imageButton.setOnClickListener(v -> mDrawerLayout.openDrawer(GravityCompat.START));
 
-        updateView((String)Paper.book().read("language"));
+        updateView(Paper.book().read("language"));
 
         this.connectionServer = new ConnectionServer(this);
         registerPhoneToServer();
@@ -147,17 +113,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //            changeLocale();
 //        });
         navigateButton.setOnClickListener(v -> {
-            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(originLocation));
-            originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-            LatLng originLatLng = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
+            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(getLastBestLocation()));
             LatLng destLatLng = new LatLng(destSafePoint.getLat(), destSafePoint.getLan());
-//            destinationPosition = Point.fromLngLat(destSafePoint.getLan(),destSafePoint.getLat());
-            List<LatLng> points = new ArrayList<>();
-            Log.d(TAG, "onCreate: lat"+destLatLng.getLatitude()+" lan:"+destLatLng.getLongitude());
-            points.add(originLatLng);
-            points.add(destLatLng);
-            polyLineDraw(points);
-//            startNavigation(originPosition, destinationPosition, -1,99);
+//            List<LatLng> points = new ArrayList<>();
+            Log.d(TAG, "onCreate: lat"+destLatLng.latitude+" lan:"+destLatLng.longitude);
+//            points.add(destLatLng);
+            Intent intent = new Intent(this, MapsActivity.class);
+            intent.putExtra("destLatLng", destLatLng);
+            startActivity(intent);
         });
 //        GPSService.isWar = false;
         Intent intent = new Intent(getApplicationContext(), GPSService.class);
@@ -199,10 +162,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private boolean validateDistanceToClosestPoint(Point currentLocation, Point destination, int time){
+    private boolean validateDistanceToClosestPoint(LatLng currentLocation, LatLng destination, int time){
         double distance = databaseHelper.getDistanceBetweenTwoPoints(
-                new SafePoint(currentLocation.latitude(),currentLocation.longitude()),
-                new SafePoint(destination.latitude(),destination.longitude()));
+                new SafePoint(currentLocation.latitude,currentLocation.longitude),
+                new SafePoint(destination.latitude,destination.longitude));
         Log.d(TAG, "validateDistanceToClosestPoint: distance: "+distance);
         Log.d(TAG, "validateDistanceToClosestPoint: distanceTime:" +(time*2.5) + " time:"+time);
         Log.d(TAG, "validateDistanceToClosestPoint: rv: "+((time*2.5)>distance));
@@ -249,14 +212,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onMapReady(MapboxMap mapboxMap) {
-        this.mapboxMap = mapboxMap;
-        enableLocationComponent();
-        checkIntent();
-        connectionServer.getSafeLocation(this.originLocation.getLatitude(), this.originLocation.getLongitude());
-
-    }
-    @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -270,8 +225,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d(TAG, "addSafeMarkerOnMap: list:"+list.toString());
         this.safeList = list;
         for (LatLng latLng : list) {
-            mapboxMap.addMarker(new MarkerOptions()
-                                 .position(latLng));
+            mMap.addMarker(new MarkerOptions()
+            .position(latLng)
+            .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker)));
         }
     }
 
@@ -286,10 +242,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 double lan = Double.parseDouble(getIntent().getStringExtra("longitude"));
                 int time = Integer.parseInt(getIntent().getStringExtra("max_time_to_arrive_to_shelter"));
                 Log.d(TAG, "lat:"+lat+" lan:  "+lan);
-                destinationPosition = Point.fromLngLat(lan,lat);
-                originPosition = Point.fromLngLat(originLocation.getLongitude(),originLocation.getLatitude());
-                if(validateDistanceToClosestPoint(originPosition,destinationPosition,time)){
-                    startNavigation(originPosition, destinationPosition, alertId,time); // example routing NEED TO ADD DB SEARCH FOR DEST
+                destinationPosition = new LatLng(lat, lan);
+                if(validateDistanceToClosestPoint(originPosition, destinationPosition, time)){
+                    startNavigation(destinationPosition, alertId,time); // example routing NEED TO ADD DB SEARCH FOR DEST
                 }else
                     showNoSafePointMessage();
             }catch(Exception e){
@@ -298,113 +253,48 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void startNavigation(Point originPosition, Point destinationPosition, int alertId,int timeToDistance) {
-        Intent intent = new Intent(this,NavigationActivity.class);
-        intent.putExtra("positionLon",originPosition.longitude());
-        intent.putExtra("positionLat",originPosition.latitude());
-        intent.putExtra("destinationLon",destinationPosition.longitude());
-        intent.putExtra("destinationLat",destinationPosition.latitude());
+    private void startNavigation(LatLng destLatLng, int alertId,int timeToDistance) {
+        Intent intent = new Intent(this,MapsActivity.class);
+        intent.putExtra("destLatLng", destLatLng);
         intent.putExtra("AlertID", alertId);
         intent.putExtra("timeToDistance",timeToDistance);
         startActivity(intent);
 //        showNoSafePointMessage();
     }
 
-    @SuppressWarnings({"MissingPermission"})
-    private void enableLocationComponent() {
-        // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            // Activate the MapboxMap LocationComponent to show user location
-            // Adding in LocationComponentOptions is also an optional parameter
-            LocationComponent locationComponent = mapboxMap.getLocationComponent();
-            locationComponent.activateLocationComponent(this);
-            locationComponent.setLocationComponentEnabled(true);
-            locationComponent.setRenderMode(RenderMode.GPS);
-            // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
-            /*locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                @Override
-                public void onCameraTrackingDismissed() {
-                    
-                }
-
-                @Override
-                public void onCameraTrackingChanged(int currentMode) {
-                    polyLineDraw(points)
-                }
-            });*/
-
-            this.originLocation = getLastBestLocation();
-            if (this.originLocation == null)
-                this.originLocation = locationComponent.getLastKnownLocation();
-            Log.d(TAG, "enableLocationComponent: originLocation: "+originLocation.getLongitude()+" "+originLocation.getLatitude());
-            changeCameraLocation(this.originLocation);
-        } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(this);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(this, R.string.user_location_permission_explanation, Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onPermissionResult(boolean granted) {
-        if (granted) {
-            enableLocationComponent();
-        } else {
-            Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
-            finish();
-        }
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
-        mapView.onStart();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mapView.onResume();
     }
+
     @Override
     public void onPause() {
         super.onPause();
-        mapView.onPause();
     }
-
 
     @Override
     protected void onStop() {
         super.onStop();
-        mapView.onStop();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mapView.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        mapView.onLowMemory();
     }
 
     private Location getLastBestLocation() {
@@ -432,23 +322,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void changeCameraLocation(Location location){
-        CameraPosition position = new CameraPosition.Builder()
-                .target(new LatLng(location.getLatitude(), location.getLongitude())) // Sets the new camera position
-                .zoom(12) // Sets the zoom
-                .bearing(180) // Rotate the camera
-                .tilt(30) // Set the camera tilt
-                .build(); // Creates a CameraPosition from the builder
-
-        mapboxMap.animateCamera(CameraUpdateFactory
-                .newCameraPosition(position), 7000);
-    }
-    private void polyLineDraw(List<LatLng> points){
-        this.mapboxMap.addPolyline(new PolylineOptions()
-                .addAll(points)
-                .color(Color.parseColor("#3bb2d0"))
-                .width(2));
-    }
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -475,9 +348,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Paper.book().write("sound","True");
             }
         }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        mMap = map;
+        // TODO: Before enabling the My Location layer, you must request
+        // location permission from the user. This sample does not include
+        // a request for location permission.
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
+        Location myLocation = getLastBestLocation();
+        originPosition = new LatLng(myLocation.getLatitude(),
+                myLocation.getLongitude());
+        com.google.android.gms.maps.model.CameraPosition myPosition = new CameraPosition.Builder()
+                .target(originPosition).zoom(17).bearing(90).tilt(30).build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(myPosition));
+        checkIntent();
+        connectionServer.getSafeLocation(originPosition.latitude, originPosition.longitude);
     }
 }

@@ -4,18 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto">
-    <com.mapbox.mapboxsdk.maps.MapView
+    <fragment
         android:id="@+id/mapView"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:layout_constraintBottom_toBottomOf="parent"
-        mapbox:layout_constraintEnd_toEndOf="parent"
-        mapbox:layout_constraintHorizontal_bias="0.0"
-        mapbox:layout_constraintStart_toStartOf="parent"
-        mapbox:mapbox_cameraZoom="20"
-        mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10">
-
-    </com.mapbox.mapboxsdk.maps.MapView>
+        android:layout_weight="0.1"
+        tools:context=".MapsActivity" />
 
     <Button
         android:id="@+id/navigateButton"
@@ -23,8 +18,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@color/backGroundRed"
+        android:background="@drawable/button_oval"
         android:text="@string/navigate_to_safe_place"
+        android:fontFamily="@font/rubik_medium"
         mapbox:layout_constraintBottom_toBottomOf="parent"
         mapbox:layout_constraintEnd_toEndOf="parent"
         mapbox:layout_constraintStart_toStartOf="parent"

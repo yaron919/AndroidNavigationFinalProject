@@ -15,8 +15,8 @@ import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.MainActivity;
 import com.example.yashual.androidnavigationfinalproject.SafePoint;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,7 +38,7 @@ public class ConnectionServer  {
     private SafePoint originPosition;
     private static String unique_id;
     private static Geocoder geocoder;
-    private static final String URL_BASE = "http://18.130.17.203:3000";
+    private static final String URL_BASE = "http://109.226.11.202:3000";
 
 
     public ConnectionServer (Context context){
