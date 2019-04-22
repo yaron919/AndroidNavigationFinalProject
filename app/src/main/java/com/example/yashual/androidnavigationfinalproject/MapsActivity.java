@@ -64,6 +64,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationManager locationManager;
     private Polyline line;
     private CountDownTimer timer;
+    private MediaPlayer mp ;
+    private MediaPlayer timerBeep ;
+    private boolean soundOn;
+    private int count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +75,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateView(Paper.book().read("language"));
         setContentView(R.layout.activity_maps);
         initialLocationManager();
+        soundOn = Paper.book().read("sound").equals("True");
         exitNavigationBtn = findViewById(R.id.exitNavigationBtn);
         addressTextView = findViewById(R.id.address_text_view);
         distanceTextView = findViewById(R.id.distance_text_view);
@@ -79,6 +84,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        mp = MediaPlayer.create(this, R.raw.to_the_point);
+        timerBeep = MediaPlayer.create(this, R.raw.timer);
         exitNavigationBtn.setOnClickListener(v -> finish());
         Intent intent = getIntent();
         if (getIntent().hasExtra("destinationLat") && getIntent().hasExtra("redAlertId")
@@ -93,6 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }else{
             destinationPosition = new LatLng(intent.getDoubleExtra("destinationLon", 31.900051),
                     intent.getDoubleExtra("destinationLat", 34.806620));
+            startTimer(30);
             timerTextView.setText("");
         }
     }
@@ -101,6 +109,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         timer = new CountDownTimer(time*1000, 1000) {
 
             public void onTick(long millisUntilFinished) {
+                count++;
                 int seconds = (int) (millisUntilFinished / 1000);
                 String timeStr = "";
                 int min = seconds / 60;
@@ -114,6 +123,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     timeStr += "0";
                 }
                 timeStr += sec;
+                Log.d(TAG, "onTick: sound is "+ soundOn);
+                if (soundOn){
+                    if (seconds > 15 &&count % 5 == 0)
+                    {
+                        timerBeep.start();
+                    }else if (seconds <= 15) {
+                        timerBeep.start();
+                    }
+                }
                 timerTextView.setText(timeStr);
             }
             public void onFinish() {
@@ -130,8 +148,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getResources().getString(R.string.ok),
                 (dialog, which) -> dialog.dismiss());
         alertDialog.show();
-        final MediaPlayer mp = MediaPlayer.create(this, R.raw.to_the_point);
-        mp.start();
+        if (soundOn){
+            final MediaPlayer mp = MediaPlayer.create(this, R.raw.to_the_point);
+            mp.start();
+        }
     }
     @SuppressLint("MissingPermission")
     private void initialLocationManager() {

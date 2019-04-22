@@ -17,4 +17,6 @@
     <string name="menu_war_mode">מצב מלחמה</string>
     <string name="menu_areas">אזורים</string>
     <string name="menu_sound">צלילים</string>
+    <string name="sound_off">צלילים כבויים</string>
+    <string name="sound_on">צלילים מופעלים</string>
 </resources>
