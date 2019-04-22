@@ -225,7 +225,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onPause() {
         super.onPause();
-        timer.cancel();
+        if(timer != null){
+            timer.cancel();
+        }
         if(locationManager != null)
         {
             locationManager.removeUpdates(this);
