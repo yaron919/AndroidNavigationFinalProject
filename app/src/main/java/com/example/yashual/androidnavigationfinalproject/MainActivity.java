@@ -341,10 +341,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (id == R.id.nav_sound) {
             if (Paper.book().read("sound").equals("True")) {
                 Paper.book().write("sound", "False");
+                Toast.makeText(this, R.string.sound_off, Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "onNavigationItemSelected: sounds False" );
             }
             else{
                 Log.d(TAG, "onNavigationItemSelected: sounds True" );
+                Toast.makeText(this,R.string.sound_on, Toast.LENGTH_SHORT).show();
                 Paper.book().write("sound","True");
             }
         }
