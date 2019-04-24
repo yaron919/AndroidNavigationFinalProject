@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_areas">"Районы"</string>
+    <string name="language_change">"Изменение языка"</string>
+    <string name="instructions_headline">Инструкции</string>
+    <string name="instructions">Ложись на землю и накрой голову руками</string>
+    <string name="navigate_to_safe_place">"Перейдите в безопасное место"</string>
+    <string name="title_activity_navigation_after_notification">"Навигация после уведомления"</string>
+    <string name="ok">Хорошо</string>
+    <string name="menu_location">"Безопасные места"</string>
+    <string name="menu_sound">"Звук"</string>
+    <string name="sound_off">"Звук выключен"</string>
+    <string name="sound_on">"Звук включен"</string>
+    <string name="user_location_permission_explanation">Это приложение нуждается в разрешении местоположения, чтобы функционировать.</string>
+    <string name="seconds_remain">"Оставшееся время:"</string>
+    <string name="war_mode">"Режим войны"</string>
+    <string name="menu_war_mode">"Режим войны"</string>
+    <string name="user_location_permission_not_granted">Разрешение на местоположение не представлено.</string>
+</resources>

@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">AndroidNavigationFinalProject</string>
-    <string name="access_token">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwNDZyYmdxMDFnMjNsbWt3amJoMTdjdiJ9.-FD6s9dT92zpHFFv8dNFkA</string>
-    <string name="access_token_notification">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwaDg1ZWZwMHJhODNwbGc3NDZxN202NSJ9.cEXdBXMS74lHO3pOHvmyrQ</string>
+    <string name="app_name" translatable="false">AndroidNavigationFinalProject</string>
+    <string name="access_token" translatable="false">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwNDZyYmdxMDFnMjNsbWt3amJoMTdjdiJ9.-FD6s9dT92zpHFFv8dNFkA</string>
+    <string name="access_token_notification" translatable="false">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwaDg1ZWZwMHJhODNwbGc3NDZxN202NSJ9.cEXdBXMS74lHO3pOHvmyrQ</string>
     <string name="title_activity_navigation_after_notification">NavigationAfterNotification</string>
     <string name="user_location_permission_explanation">This app needs location permissions in order to show its functionality.</string>
     <string name="user_location_permission_not_granted">You didn\'t grant location permissions.</string>
@@ -17,7 +17,7 @@
     <string name="menu_location">Safe Places</string>
     <string name="menu_war_mode">War Mode</string>
     <string name="menu_areas">Areas</string>
-    <string name="menu_sound">Sounde</string>
+    <string name="menu_sound">Sounds</string>
     <string name="title_activity_maps" translatable="false">Map</string>
     <string name="sound_off">Sounds Off</string>
     <string name="sound_on">Sounds On</string>

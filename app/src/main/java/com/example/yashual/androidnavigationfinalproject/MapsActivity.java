@@ -2,6 +2,7 @@ package com.example.yashual.androidnavigationfinalproject;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -72,8 +74,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        updateView(Paper.book().read("language"));
         setContentView(R.layout.activity_maps);
+        updateView(Paper.book().read("language"), savedInstanceState);
         initialLocationManager();
         soundOn = Paper.book().read("sound").equals("True");
         exitNavigationBtn = findViewById(R.id.exitNavigationBtn);
@@ -88,18 +90,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         timerBeep = MediaPlayer.create(this, R.raw.timer);
         exitNavigationBtn.setOnClickListener(v -> finish());
         Intent intent = getIntent();
-        if (getIntent().hasExtra("destLatLng") && getIntent().hasExtra("AlertID")
-                && getIntent().hasExtra("timeToDistance")) {
-            destinationPosition = new LatLng(intent.getDoubleExtra("destinationLon", 31.900051),
+        if (getIntent().hasExtra("destLatLng")){
+            destinationPosition = new LatLng(intent.getDoubleExtra("destLatLng", 31.900051),
                     intent.getDoubleExtra("destLatLng", 34.806620));
+        }
+        if (getIntent().hasExtra("AlertID") && getIntent().hasExtra("timeToDistance")) {
             timeToDistance = intent.getIntExtra("timeToDistance", 99);
             redAlertID = intent.getIntExtra("AlertID", -1);
             if (redAlertID != -1)
                 fromNotification = true;
             startTimer(timeToDistance);
         }else{
-            destinationPosition = new LatLng(intent.getDoubleExtra("destLatLng", 31.900051),
-                    intent.getDoubleExtra("destLatLng", 34.806620));
             timerTextView.setText("");
         }
     }
@@ -223,11 +224,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
         }
     }
-    private void updateView(String language) {
+    private void updateView(String language, Bundle savedInstanceState) {
         Log.d(TAG, "updateView: language " + language);
         Locale locale = new Locale(language);
         Locale.setDefault(locale);
         Configuration config = new Configuration();
+//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+//                .findFragmentById(R.id.map);
+//        mapFragment.onDestroy();
+//        mapFragment.onCreate(savedInstanceState);
         config.locale = locale;
     }
 
