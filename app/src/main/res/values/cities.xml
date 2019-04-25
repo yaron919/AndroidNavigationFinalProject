@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="cities">
-        <item>hadera@255</item>
+        <item>hadera@107</item>
         <item>rehovot@182</item>
-        <item>ashdod@230</item>
+        <item>ashdod@271</item>
     </string-array>
 </resources>

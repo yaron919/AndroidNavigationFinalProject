@@ -60,7 +60,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
                     //remove from Warning messages API
                     city.setSelected(false);
                     try{
-                        connectionServer.deleteNotifiyCity(city.getCode());
+                        connectionServer.deleteNotifyCity(city.getCode());
                     }  catch (JSONException e) {
                         e.printStackTrace();
                     }

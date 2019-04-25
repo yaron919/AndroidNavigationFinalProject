@@ -158,11 +158,11 @@ public class ConnectionServer  {
 
     public static void addNotifyCity(int areaCode) throws JSONException{
         String url = URL_BASE+"/management/areas/preferred";
-        Log.d(TAG, "onResponse: unique_id: "+unique_id);
+        Log.d(TAG, "onResponse: area_code: "+areaCode);
         Log.d(TAG, "notify areas by id: start function");
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("unique_id",unique_id);
-        jsonObj.put("area_code",areaCode);
+        jsonObj.put("area_code",areaCode+"");
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -177,13 +177,13 @@ public class ConnectionServer  {
         mQueue.add(request);
     }
 
-    public static void deleteNotifiyCity(int areaCode) throws JSONException{
-        String url = URL_BASE+"/management/areas/OnePreferred?area_code="+areaCode+"?unique_id="+unique_id;
+    public static void deleteNotifyCity(int areaCode) throws JSONException{
+        String url = URL_BASE+"/management/areas/OnePreferred?area_code="+areaCode+"&unique_id="+unique_id;
         JSONObject jsonObj = new JSONObject();
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, url,jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.e(TAG, "onResponse: from delete notify");
+                Log.e(TAG, "onResponse: from delete notify"+response);
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override
