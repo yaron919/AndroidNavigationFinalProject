@@ -11,6 +11,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.yashual.androidnavigationfinalproject.AreasActivity;
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.MainActivity;
 import com.example.yashual.androidnavigationfinalproject.SafePoint;
@@ -33,6 +34,7 @@ public class ConnectionServer  {
     private static final String TAG = "Connection Server";
     private static RequestQueue mQueue;
     private MainActivity mainActivity;
+    private AreasActivity areasActivity;
     private DatabaseHelper mDatabaseHelper;
     private GPSService gpsService;
     private SafePoint originPosition;
@@ -44,6 +46,13 @@ public class ConnectionServer  {
     public ConnectionServer (Context context){
         mQueue = Volley.newRequestQueue(context);
         this.mainActivity = (MainActivity) context;
+        mDatabaseHelper = new DatabaseHelper(context);
+        unique_id  = FirebaseInstanceId.getInstance().getToken();
+        geocoder = new Geocoder(context, Locale.ENGLISH);
+    }
+    public ConnectionServer (Context context, String def ){
+        mQueue = Volley.newRequestQueue(context);
+        this.areasActivity = (AreasActivity) context;
         mDatabaseHelper = new DatabaseHelper(context);
         unique_id  = FirebaseInstanceId.getInstance().getToken();
         geocoder = new Geocoder(context, Locale.ENGLISH);
@@ -146,6 +155,47 @@ public class ConnectionServer  {
         });
         mQueue.add(request);
     }
+
+    public static void addNotifyCity(int areaCode) throws JSONException{
+        String url = URL_BASE+"/management/areas/preferred";
+        Log.d(TAG, "onResponse: unique_id: "+unique_id);
+        Log.d(TAG, "notify areas by id: start function");
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put("unique_id",unique_id);
+        jsonObj.put("area_code",areaCode);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d(TAG, "onResponse: addNotifyCity"+response.toString());
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+        mQueue.add(request);
+    }
+
+    public static void deleteNotifiyCity(int areaCode) throws JSONException{
+        String url = URL_BASE+"/management/areas/OnePreferred?area_code="+areaCode+"?unique_id="+unique_id;
+        JSONObject jsonObj = new JSONObject();
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.DELETE, url,jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.e(TAG, "onResponse: from delete notify");
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+        mQueue.add(request);
+
+
+    }
+
 
     public static void UpdateLanguageInServer (){
         String url = String.format(URL_BASE+"/idle/preferred_language");

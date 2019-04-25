@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_locations"
+            android:icon="@drawable/ic_location_on_white_24dp"
+            android:title="@string/menu_location" />
+        <item
+            android:id="@+id/nav_language"
+            android:icon="@drawable/ic_language_white_24dp"
+            android:title="@string/language_change" />
+
+    </group>
+
+</menu>
