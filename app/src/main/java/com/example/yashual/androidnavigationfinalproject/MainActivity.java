@@ -155,11 +155,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 e.printStackTrace();
             }
         }
-        if (!unique_id.equals(FirebaseInstanceId.getInstance().getToken()))
-        {
-            Log.d(TAG, "registerPhoneToServer: firebase instance change");
-            connectionServer.updateFirebaseInstance(unique_id);
-        }
+//        if (!unique_id.equals(FirebaseInstanceId.getInstance().getToken()))
+//        {
+//            Log.d(TAG, "registerPhoneToServer: firebase instance change");
+//            connectionServer.updateFirebaseInstance(unique_id);
+//        }
     }
 
     private boolean validateDistanceToClosestPoint(LatLng currentLocation, LatLng destination, int time){
