@@ -336,8 +336,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (id == R.id.nav_language) {
             changeLocale();
         } else if (id == R.id.nav_areas) {
-//            Intent intent = new Intent(this, MainActivity.class);
-//            startActivity(intent);
+            Intent intent = new Intent(this, AreasActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_sound) {
             if (Paper.book().read("sound").equals("True")) {
                 Paper.book().write("sound", "False");
