@@ -16,4 +16,6 @@
     <string name="war_mode">"Режим войны"</string>
     <string name="menu_war_mode">"Режим войны"</string>
     <string name="user_location_permission_not_granted">Разрешение на местоположение не представлено.</string>
+    <string name="alarm_on">Вы были добавлены к сигнализации в выбранном городе</string>
+    <string name="alarm_off">Вы были удалены из будильника в выбранном городе</string>
 </resources>

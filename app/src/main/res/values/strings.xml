@@ -21,4 +21,7 @@
     <string name="title_activity_maps" translatable="false">Map</string>
     <string name="sound_off">Sounds Off</string>
     <string name="sound_on">Sounds On</string>
+    <string name="alarm_on">You have been added to alarms in the selected city </string>
+    <string name="alarm_off">You have been removed from the alarms in the selected city </string>
+
 </resources>
