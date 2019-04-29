@@ -23,5 +23,7 @@
     <string name="sound_on">Sounds On</string>
     <string name="alarm_on">You have been added to alarms in the selected city </string>
     <string name="alarm_off">You have been removed from the alarms in the selected city </string>
+    <string name="search_city">Search for a city </string>
+
 
 </resources>
