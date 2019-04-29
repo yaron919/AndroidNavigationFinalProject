@@ -69,10 +69,10 @@ public class CitiesCustomAdapter extends BaseAdapter {
         holder.tvUserName.setText(model.getName());
 
         if (model.isSelected())
-            holder.ivCheckBox.setBackgroundResource(R.drawable.checked);
+            holder.ivCheckBox.setBackgroundResource(R.drawable.circle_ok);
 
         else
-            holder.ivCheckBox.setBackgroundResource(R.drawable.check);
+            holder.ivCheckBox.setBackgroundResource(R.drawable.circle_empty);
 
         return view;
 
