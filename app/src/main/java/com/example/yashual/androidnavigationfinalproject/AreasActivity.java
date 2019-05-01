@@ -100,6 +100,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         else
             warSwitch.setChecked(Paper.book().read("war")); // set switch status
         updateView(Paper.book().read("language"));
+        updateListLanguage();
 
 
 
@@ -182,7 +183,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
 
     }
 
-    private void updateListLanguage(String lang){
+    private void updateListLanguage(){
         Resources res = getResources();
         String[] initCities = res.getStringArray(R.array.cities);
         for(int i = 0 ; i < initCities.length; i++){
@@ -236,7 +237,6 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
                 break;
         }
         ConnectionServer.UpdateLanguageInServer();
-        updateListLanguage(Paper.book().read("language"));
         Intent refresh = new Intent(this, AreasActivity.class);
         startActivity(refresh);
         finish();
