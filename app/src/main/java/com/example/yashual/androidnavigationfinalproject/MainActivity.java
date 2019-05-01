@@ -17,6 +17,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
@@ -54,6 +55,8 @@ import android.util.Log;
 import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener{
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 111 ;
+    private static final int PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 999;
     private GoogleMap mMap;
     // variables for adding location layer
     // variables for calculating and drawing a route
@@ -68,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Switch warSwitch;
     private DrawerLayout mDrawerLayout;
     private boolean mSlideState = false;
+    private boolean mLocationPermissionGranted;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -95,7 +99,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Paper.book().write("language","en");
         if(Paper.book().read("sound") == null)
             Paper.book().write("sound","True");
-
+        if(Paper.book().read("war") == null)
+            Paper.book().write("war",false);
+        else
+            warSwitch.setChecked(Paper.book().read("war")); // set switch status
         View bar = findViewById(R.id.include_bar);
         ImageButton imageButton = bar.findViewById(R.id.nav_view_btn);
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -127,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startService(intent);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             GPSService.isWar = isChecked;
+            Paper.book().write("war",isChecked);
             Intent i = new Intent(getApplicationContext(), GPSService.class);
             stopService(i);
             startService(i);
@@ -191,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         LocaleHelper.setLocale(this,language);
     }
 
-    private void changeLocale(){
+    private  void changeLocale(){
         String current_lang = Locale.getDefault().getDisplayLanguage();
         Log.d(TAG, "current language:" + current_lang);
         switch(current_lang) {
@@ -322,6 +330,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    private void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+        }
+    }
+
+
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -362,14 +398,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // location permission from the user. This sample does not include
         // a request for location permission.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+            getLocationPermission();
         }
         mMap.setMyLocationEnabled(true);
         Location myLocation = getLastBestLocation();
@@ -381,4 +410,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkIntent();
         connectionServer.getSafeLocation(originPosition.latitude, originPosition.longitude);
     }
+
+
 }

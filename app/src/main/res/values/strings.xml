@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">AndroidNavigationFinalProject</string>
+    <string name="app_name" translatable="false">iAlert</string>
     <string name="access_token" translatable="false">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwNDZyYmdxMDFnMjNsbWt3amJoMTdjdiJ9.-FD6s9dT92zpHFFv8dNFkA</string>
     <string name="access_token_notification" translatable="false">pk.eyJ1IjoieWFyb245MTkiLCJhIjoiY2pwaDg1ZWZwMHJhODNwbGc3NDZxN202NSJ9.cEXdBXMS74lHO3pOHvmyrQ</string>
     <string name="title_activity_navigation_after_notification">NavigationAfterNotification</string>
@@ -24,6 +24,5 @@
     <string name="alarm_on">You have been added to alarms in the selected city </string>
     <string name="alarm_off">You have been removed from the alarms in the selected city </string>
     <string name="search_city">Search for a city </string>
-
 
 </resources>
