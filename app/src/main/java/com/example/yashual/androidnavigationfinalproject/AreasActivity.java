@@ -1,5 +1,6 @@
 package com.example.yashual.androidnavigationfinalproject;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.support.design.widget.NavigationView;
@@ -50,11 +51,9 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_areas);
         this.connectionServer = new ConnectionServer(this,"");
-
+        Paper.init(this);
         search = (EditText) findViewById(R.id.searchView);
         listView = (ListView) findViewById(R.id.listView);
-
-
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         View bar = findViewById(R.id.include_bar);
@@ -91,7 +90,6 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
             stopService(i);
             startService(i);
         });
-        Paper.init(this);
         String language = Paper.book().read("language");
         if(language == null)
             Paper.book().write("language","en");
@@ -107,14 +105,18 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
 
     }
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.onAttach(newBase,"en"));
+    }
+
     private void updateView(String language) {
         LocaleHelper.setLocale(this,language);
     }
     private void displayListView(){
-      //  cities = Paper.book().read("cities");
-        //if (cities == null)
+        cities = Paper.book().read("cities");
+        if (cities == null)
             updateInitCitiesList();
-
         adapter = new CitiesCustomAdapter(this, cities);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -166,12 +168,28 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
 
     private void updateInitCitiesList(){
         cities = new ArrayList<City>();
+        tempCities = Paper.book().read("cities");
         Resources res = getResources();
         String[] initCities = res.getStringArray(R.array.cities);
         for (String str : initCities) {
             String[] splittedItem = str.split("@");
-            cities.add(new City(Integer.parseInt(splittedItem[1]),splittedItem[0],false));
+            if(tempCities == null){
+                cities.add(new City(Integer.parseInt(splittedItem[1]),splittedItem[0],false));
+            }else{
+                cities.add(new City(Integer.parseInt(splittedItem[1]),splittedItem[0],false)); // should be changed
+            }
         }
+
+    }
+
+    private void updateListLanguage(String lang){
+        Resources res = getResources();
+        String[] initCities = res.getStringArray(R.array.cities);
+        for(int i = 0 ; i < initCities.length; i++){
+            cities.get(i).setName(initCities[i].split("@")[0]);
+        }
+        Paper.book().write("cities",cities);
+
     }
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -217,8 +235,8 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
                 updateView((String)Paper.book().read("language"));
                 break;
         }
-        updateView((String)Paper.book().read("language"));
         ConnectionServer.UpdateLanguageInServer();
+        updateListLanguage(Paper.book().read("language"));
         Intent refresh = new Intent(this, AreasActivity.class);
         startActivity(refresh);
         finish();
