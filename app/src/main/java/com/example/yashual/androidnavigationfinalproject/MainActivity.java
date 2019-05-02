@@ -27,6 +27,8 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -35,6 +37,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import android.location.Location;
@@ -55,11 +59,15 @@ import android.util.Log;
 import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener{
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 111 ;
-    private static final int PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 999;
     private GoogleMap mMap;
     // variables for adding location layer
     // variables for calculating and drawing a route
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private LatLng mDefaultLocation = new LatLng(32.113819, 34.817794);
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private static final int DEFAULT_ZOOM = 17;
+    private Location mLastKnownLocation;
+    private boolean mLocationPermissionGranted;
     private LatLng originPosition;
     private LatLng destinationPosition;
     private static final String TAG = "MainActivity";
@@ -71,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Switch warSwitch;
     private DrawerLayout mDrawerLayout;
     private boolean mSlideState = false;
-    private boolean mLocationPermissionGranted;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -85,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //        languageButton = findViewById(R.id.nav_language);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         mapFragment.getMapAsync(this);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -99,10 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Paper.book().write("language","en");
         if(Paper.book().read("sound") == null)
             Paper.book().write("sound","True");
-        if(Paper.book().read("war") == null)
-            Paper.book().write("war",false);
-        else
-            warSwitch.setChecked(Paper.book().read("war")); // set switch status
+
         View bar = findViewById(R.id.include_bar);
         ImageButton imageButton = bar.findViewById(R.id.nav_view_btn);
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -134,7 +139,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startService(intent);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             GPSService.isWar = isChecked;
-            Paper.book().write("war",isChecked);
             Intent i = new Intent(getApplicationContext(), GPSService.class);
             stopService(i);
             startService(i);
@@ -199,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         LocaleHelper.setLocale(this,language);
     }
 
-    private  void changeLocale(){
+    private void changeLocale(){
         String current_lang = Locale.getDefault().getDisplayLanguage();
         Log.d(TAG, "current language:" + current_lang);
         switch(current_lang) {
@@ -330,34 +334,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void getLocationPermission() {
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
-        }
-    }
-
-
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -394,22 +370,79 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        // TODO: Before enabling the My Location layer, you must request
-        // location permission from the user. This sample does not include
-        // a request for location permission.
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            getLocationPermission();
-        }
-        mMap.setMyLocationEnabled(true);
-        Location myLocation = getLastBestLocation();
-        originPosition = new LatLng(myLocation.getLatitude(),
-                myLocation.getLongitude());
-        com.google.android.gms.maps.model.CameraPosition myPosition = new CameraPosition.Builder()
-                .target(originPosition).zoom(17).bearing(90).tilt(30).build();
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(myPosition));
+
+        // prompt the user for permission
+        getLocationPermission();
+        // Turn on the My Location layer and the related control on the map.
+        updateLocationUI();
+        // Get the current location of the device and set the position of the map.
+        getDeviceLocation();
+//        Location myLocation = getLastBestLocation();
         checkIntent();
-        connectionServer.getSafeLocation(originPosition.latitude, originPosition.longitude);
+
+    }
+    private void updateLocationUI() {
+        if (mMap == null) {
+            return;
+        }
+        try {
+            if (mLocationPermissionGranted) {
+                mMap.setMyLocationEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            } else {
+                mMap.setMyLocationEnabled(false);
+                mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                mLastKnownLocation = null;
+            }
+        } catch (SecurityException e) {
+            Log.e("Exception: %s", e.getMessage());
+        }
     }
 
+    private void getDeviceLocation() {
+        /*
+         * Get the best and most recent location of the device, which may be null in rare
+         * cases when a location is not available.
+         */
+        try {
+            if (mLocationPermissionGranted) {
+                Task locationResult = mFusedLocationProviderClient.getLastLocation();
+                locationResult.addOnCompleteListener(this, new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if (task.isSuccessful()) {
+                            // Set the map's camera position to the current location of the device.
+                            mLastKnownLocation = (Location) task.getResult();
+                            try {
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(mLastKnownLocation.getLatitude(),
+                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                                connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                            } catch (NullPointerException e) {
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                                mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                            }
+                        } else {
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                        }
+                    }
+                });
+            }
+        } catch (SecurityException e) {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
 
+    private void getLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
 }

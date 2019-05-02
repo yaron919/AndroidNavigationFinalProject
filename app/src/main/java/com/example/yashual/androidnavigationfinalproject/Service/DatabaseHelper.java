@@ -173,7 +173,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             distance = getDistanceBetweenTwoPoints(currentLocation,safePointInList);
             if(distance < shortestDistance){
                 shortestDistance = distance;
-                nearest_location =safePointInList;
+                nearest_location = safePointInList;
             }
         }
         return nearest_location;
