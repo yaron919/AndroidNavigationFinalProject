@@ -60,7 +60,6 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         ImageButton imageButton = bar.findViewById(R.id.nav_view_btn);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         imageButton.setOnClickListener(v -> mDrawerLayout.openDrawer(GravityCompat.START));
-        displayListView();
         search.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -100,7 +99,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         else
             warSwitch.setChecked(Paper.book().read("war")); // set switch status
         updateView(Paper.book().read("language"));
-        updateListLanguage();
+        displayListView();
 
 
 
@@ -118,6 +117,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         cities = Paper.book().read("cities");
         if (cities == null)
             updateInitCitiesList();
+        updateListLanguage();
         adapter = new CitiesCustomAdapter(this, cities);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -188,6 +188,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         String[] initCities = res.getStringArray(R.array.cities);
         for(int i = 0 ; i < initCities.length; i++){
             cities.get(i).setName(initCities[i].split("@")[0]);
+            Log.d(TAG, "Insideloop:"+ cities.get(i).getName() );
         }
         Paper.book().write("cities",cities);
 
