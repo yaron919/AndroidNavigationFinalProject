@@ -105,6 +105,7 @@ public class ConnectionServer  {
         List<Address> addresses = geocoder.getFromLocation(lat, lan, 1);
         String cityName = addresses.get(0).getLocality().toLowerCase();
         cityName = cityName.replaceAll("\\s+","");
+//        cityName = "hadera";
         String language = Locale.getDefault().getDisplayLanguage().toLowerCase();
         switch(language) {
             case("עברית"):
