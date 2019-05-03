@@ -44,6 +44,8 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
     private CitiesCustomAdapter adapter;
     private ListView listView;
     private Switch warSwitch;
+    private int currentAmountOfSubs;
+    private int MAX_SUBS = 10;
 
 
     @Override
@@ -52,6 +54,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         setContentView(R.layout.activity_areas);
         this.connectionServer = new ConnectionServer(this,"");
         Paper.init(this);
+        currentAmountOfSubs = 0;
         search = (EditText) findViewById(R.id.searchView);
         listView = (ListView) findViewById(R.id.listView);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -102,6 +105,16 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         displayListView();
 
 
+    }
+    public void updateListFromServer(ArrayList<Integer> areaCodes){
+        currentAmountOfSubs = areaCodes.size(); // set number of subs
+        for(int i =0 ; i< cities.size(); i++){
+            if(areaCodes.contains(cities.get(i).getCode())){
+                cities.get(i).setSelected(true);
+            }
+        }
+        Paper.book().write("cities",cities);
+
 
     }
 
@@ -117,6 +130,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         cities = Paper.book().read("cities");
         if (cities == null)
             updateInitCitiesList();
+        connectionServer.getAllSubAreas();
         updateListLanguage();
         adapter = new CitiesCustomAdapter(this, cities);
         listView.setAdapter(adapter);
@@ -130,19 +144,24 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
                     city.setSelected(false);
                     try{
                         connectionServer.deleteNotifyCity(city.getCode());
+                        currentAmountOfSubs--;
                         Toast.makeText( getApplicationContext(), R.string.alarm_off, Toast.LENGTH_SHORT).show();
 
                     }  catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }else{
-                    // add to warning message API
-                    city.setSelected(true);
-                    try{
-                        connectionServer.addNotifyCity(city.getCode());
-                        Toast.makeText( getApplicationContext(), R.string.alarm_on, Toast.LENGTH_SHORT).show();
-                    }  catch (JSONException e) {
-                        e.printStackTrace();
+                    if(currentAmountOfSubs < MAX_SUBS){
+                        try{
+                            city.setSelected(true);
+                            connectionServer.addNotifyCity(city.getCode());
+                            currentAmountOfSubs++;
+                             Toast.makeText( getApplicationContext(), R.string.alarm_on, Toast.LENGTH_SHORT).show();
+                        }  catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }else{
+                        Toast.makeText( getApplicationContext(),R.string.maximum_subs, Toast.LENGTH_SHORT).show();
                     }
                 }
                 Paper.book().write("cities",cities);
@@ -188,10 +207,8 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         String[] initCities = res.getStringArray(R.array.cities);
         for(int i = 0 ; i < initCities.length; i++){
             cities.get(i).setName(initCities[i].split("@")[0]);
-            Log.d(TAG, "Insideloop:"+ cities.get(i).getName() );
         }
         Paper.book().write("cities",cities);
-
     }
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {

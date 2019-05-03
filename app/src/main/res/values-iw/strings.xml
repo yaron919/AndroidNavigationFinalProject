@@ -19,6 +19,7 @@
     <string name="alarm_on">התווספתה להתראות בעיר שנבחרה</string>
     <string name="alarm_off">הורדתה מההתראות בעיר שנבחרה</string>
     <string name="search_city">חפש עיר</string>
+    <string name="maximum_subs">לא ניתן להירשם ליותר מ10 ערים</string>
 
 
 

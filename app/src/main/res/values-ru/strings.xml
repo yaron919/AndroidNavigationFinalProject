@@ -19,5 +19,6 @@
     <string name="alarm_on">Вы были добавлены к сигнализации в выбранном городе</string>
     <string name="alarm_off">Вы были удалены из будильника в выбранном городе</string>
     <string name="search_city">Поиск города</string>
+    <string name="maximum_subs">Невозможно подписать более 10 городов</string>
 
 </resources>
