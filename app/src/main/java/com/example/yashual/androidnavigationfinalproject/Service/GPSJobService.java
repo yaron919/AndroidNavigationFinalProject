@@ -10,7 +10,7 @@ import android.util.Log;
  * JobService to be scheduled by the JobScheduler.
  * start another service
  */
-public class TestJobService extends JobService {
+public class GPSJobService extends JobService {
     private static final String TAG = "SyncService";
 
     @Override

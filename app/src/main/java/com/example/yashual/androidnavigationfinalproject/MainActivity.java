@@ -61,7 +61,6 @@ import android.util.Log;
 // classes needed to launch navigation UI
 import org.json.JSONException;
 
-import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener{
     private GoogleMap mMap;
@@ -113,6 +112,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Paper.book().write("language","en");
         if(Paper.book().read("sound") == null)
             Paper.book().write("sound","True");
+        if(Paper.book().read("war") == null)
+            Paper.book().write("war",false);
+        else
+            warSwitch.setChecked(Paper.book().read("war"));
 
         View bar = findViewById(R.id.include_bar);
         ImageButton imageButton = bar.findViewById(R.id.nav_view_btn);
@@ -143,11 +146,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
         Util.scheduleJob(this);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Paper.book().write("war", isChecked);
             if (isChecked){
                 Intent i = new Intent(getApplicationContext(), WarService.class);
                 startService(i);
                 if (jobSchedulerOn){
-                    scheduleJobCancel();
+                    jobSchedulerOn = Util.scheduleJobCancel(this);
                 }
             }else{
                 if (isMyServiceRunning(WarService.class)){
@@ -155,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     stopService(i);
                 }
                 if (!jobSchedulerOn){
-                    scheduleJob();
+                    jobSchedulerOn = Util.scheduleJob(this);
                 }
             }
         });
@@ -445,7 +449,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         new LatLng(mLastKnownLocation.getLatitude(),
                                                 mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                                 connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-                                scheduleJob();
+//                                jobSchedulerOn = Util.scheduleJob;
                             } catch (NullPointerException e) {
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -472,22 +476,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
-    }
-    private void scheduleJob() {
-        ComponentName serviceComponent = new ComponentName(this, GPSService.class);
-        JobInfo.Builder builder = new JobInfo.Builder(999, serviceComponent);
-        builder.setPersisted(true);
-        builder.setPeriodic(15 * 60 * 1000);
-        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-        JobScheduler jobScheduler = getSystemService(JobScheduler.class);
-        jobScheduler.schedule(builder.build());
-        Log.d(TAG, "scheduleJob: Start");
-        jobSchedulerOn = true;
-    }
-    public void scheduleJobCancel() {
-        JobScheduler jobScheduler = getSystemService(JobScheduler.class);
-        jobScheduler.cancel(999);
-        Log.d(TAG, "scheduleJob: canceled");
-        jobSchedulerOn = false;
     }
 }

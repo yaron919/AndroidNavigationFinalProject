@@ -1,5 +1,6 @@
 package com.example.yashual.androidnavigationfinalproject;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -24,6 +25,8 @@ import android.widget.Toast;
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
+import com.example.yashual.androidnavigationfinalproject.Service.Util;
+import com.example.yashual.androidnavigationfinalproject.Service.WarService;
 
 import org.json.JSONException;
 
@@ -46,6 +49,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
     private Switch warSwitch;
     private int currentAmountOfSubs;
     private int MAX_SUBS = 10;
+    private boolean jobSchedulerOn;
 
 
     @Override
@@ -88,9 +92,21 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
 //            GPSService.isWar = isChecked;
             Paper.book().write("war", isChecked);
-            Intent i = new Intent(getApplicationContext(), GPSService.class);
-            stopService(i);
-            startService(i);
+            if (isChecked){
+                Intent i = new Intent(getApplicationContext(), WarService.class);
+                startService(i);
+                if (jobSchedulerOn){
+                    jobSchedulerOn = Util.scheduleJobCancel(this);
+                }
+            }else{
+                if (isMyServiceRunning(WarService.class)){
+                    Intent i = new Intent(getApplicationContext(), WarService.class);
+                    stopService(i);
+                }
+                if (!jobSchedulerOn){
+                    jobSchedulerOn = Util.scheduleJob(this);
+                }
+            }
         });
         String language = Paper.book().read("language");
         if(language == null)
@@ -258,6 +274,15 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         Intent refresh = new Intent(this, AreasActivity.class);
         startActivity(refresh);
         finish();
+    }
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
