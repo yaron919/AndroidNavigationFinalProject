@@ -90,9 +90,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         timerBeep = MediaPlayer.create(this, R.raw.timer);
         exitNavigationBtn.setOnClickListener(v -> finish());
         Intent intent = getIntent();
-        if (getIntent().hasExtra("destLatLng")){
-            destinationPosition = new LatLng(intent.getDoubleExtra("destLatLng", 31.900051),
-                    intent.getDoubleExtra("destLatLng", 34.806620));
+        if (getIntent().hasExtra("destLng") && getIntent().hasExtra("destLat")){
+            destinationPosition = new LatLng(intent.getDoubleExtra("destLat", 31.900051),
+                    intent.getDoubleExtra("destLng", 34.806620));
         }
         if (getIntent().hasExtra("AlertID") && getIntent().hasExtra("timeToDistance")) {
             timeToDistance = intent.getIntExtra("timeToDistance", 99);

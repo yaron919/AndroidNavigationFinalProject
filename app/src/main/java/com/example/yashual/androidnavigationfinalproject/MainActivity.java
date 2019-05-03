@@ -1,17 +1,18 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -27,6 +28,8 @@ import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
+import com.example.yashual.androidnavigationfinalproject.Service.Util;
+import com.example.yashual.androidnavigationfinalproject.Service.WarService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
@@ -34,7 +37,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -46,6 +48,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.NumberPicker;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -57,6 +60,8 @@ import io.paperdb.Paper;
 import android.util.Log;
 // classes needed to launch navigation UI
 import org.json.JSONException;
+
+import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener{
     private GoogleMap mMap;
@@ -79,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Switch warSwitch;
     private DrawerLayout mDrawerLayout;
     private boolean mSlideState = false;
+    private boolean jobSchedulerOn = false;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -125,23 +131,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //            changeLocale();
 //        });
         navigateButton.setOnClickListener(v -> {
-            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(getLastBestLocation()));
+            SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(mLastKnownLocation));
             LatLng destLatLng = new LatLng(destSafePoint.getLat(), destSafePoint.getLan());
 //            List<LatLng> points = new ArrayList<>();
             Log.d(TAG, "onCreate: lat"+destLatLng.latitude+" lan:"+destLatLng.longitude);
 //            points.add(destLatLng);
             Intent intent = new Intent(this, MapsActivity.class);
-            intent.putExtra("destLatLng", destLatLng);
+            intent.putExtra("destLng", destLatLng.longitude);
+            intent.putExtra("destLat", destLatLng.latitude);
             startActivity(intent);
         });
-//        GPSService.isWar = false;
-        Intent intent = new Intent(getApplicationContext(), GPSService.class);
-        startService(intent);
+        Util.scheduleJob(this);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            GPSService.isWar = isChecked;
-            Intent i = new Intent(getApplicationContext(), GPSService.class);
-            stopService(i);
-            startService(i);
+            if (isChecked){
+                Intent i = new Intent(getApplicationContext(), WarService.class);
+                startService(i);
+                if (jobSchedulerOn){
+                    scheduleJobCancel();
+                }
+            }else{
+                if (isMyServiceRunning(WarService.class)){
+                    Intent i = new Intent(getApplicationContext(), WarService.class);
+                    stopService(i);
+                }
+                if (!jobSchedulerOn){
+                    scheduleJob();
+                }
+            }
         });
     }
 
@@ -166,12 +182,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }else if (!unique_id.equals(FirebaseInstanceId.getInstance().getToken()))
+        {
+            Log.d(TAG, "registerPhoneToServer: firebase instance change");
+            connectionServer.updateFirebaseInstance(unique_id);
         }
-//        if (!unique_id.equals(FirebaseInstanceId.getInstance().getToken()))
-//        {
-//            Log.d(TAG, "registerPhoneToServer: firebase instance change");
-//            connectionServer.updateFirebaseInstance(unique_id);
-//        }
     }
 
     private boolean validateDistanceToClosestPoint(LatLng currentLocation, LatLng destination, int time){
@@ -267,7 +282,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void startNavigation(LatLng destLatLng, int alertId,int timeToDistance) {
         Intent intent = new Intent(this,MapsActivity.class);
-        intent.putExtra("destLatLng", destLatLng);
+        intent.putExtra("destLng", destLatLng.longitude);
+        intent.putExtra("destLat", destLatLng.latitude);
         intent.putExtra("AlertID", alertId);
         intent.putExtra("timeToDistance",timeToDistance);
         startActivity(intent);
@@ -346,6 +362,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (id == R.id.nav_war_mode) {
             warSwitch.setChecked(!warSwitch.isChecked());
         } else if (id == R.id.nav_language) {
+//            NumberPicker picker = new NumberPicker(this);
+//            picker.setMinValue(0);
+//            picker.setMaxValue(2);
+//            picker.setDisplayedValues( new String[] { "English", "Heb", "Russian" } );
+//            picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+//                @Override
+//                public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+//                    Log.d(TAG, "onValueChange: newVal " + newVal);
+//                    Log.d(TAG, "onValueChange: oldVal " + oldVal);
+//                }
+//            });
             changeLocale();
         } else if (id == R.id.nav_areas) {
             Intent intent = new Intent(this, AreasActivity.class);
@@ -418,6 +445,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         new LatLng(mLastKnownLocation.getLatitude(),
                                                 mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                                 connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                                scheduleJob();
                             } catch (NullPointerException e) {
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -444,5 +472,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+    }
+    private void scheduleJob() {
+        ComponentName serviceComponent = new ComponentName(this, GPSService.class);
+        JobInfo.Builder builder = new JobInfo.Builder(999, serviceComponent);
+        builder.setPersisted(true);
+        builder.setPeriodic(15 * 60 * 1000);
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+        JobScheduler jobScheduler = getSystemService(JobScheduler.class);
+        jobScheduler.schedule(builder.build());
+        Log.d(TAG, "scheduleJob: Start");
+        jobSchedulerOn = true;
+    }
+    public void scheduleJobCancel() {
+        JobScheduler jobScheduler = getSystemService(JobScheduler.class);
+        jobScheduler.cancel(999);
+        Log.d(TAG, "scheduleJob: canceled");
+        jobSchedulerOn = false;
     }
 }
