@@ -41,8 +41,8 @@ public class ConnectionServer  {
     private SafePoint originPosition;
     private static String unique_id;
     private static Geocoder geocoder;
-//    private static final String URL_BASE = "http://109.226.11.202:3000"; // TripleC
-    private static final String URL_BASE = "http://18.130.17.203:3000"; // AWS
+    private static final String URL_BASE = "http://109.226.11.202:3000"; // TripleC
+//    private static final String URL_BASE = "http://18.130.17.203:3000"; // AWS
 
 
     public ConnectionServer (Context context){

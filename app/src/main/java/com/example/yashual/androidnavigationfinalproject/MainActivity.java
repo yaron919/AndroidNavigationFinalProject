@@ -1,16 +1,11 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 import android.Manifest;
 import android.app.ActivityManager;
 import android.app.Dialog;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,7 +23,6 @@ import android.support.v7.app.AppCompatActivity;
 // classes needed to initialize map
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
-import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.Util;
 import com.example.yashual.androidnavigationfinalproject.Service.WarService;
@@ -44,7 +38,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import android.location.Location;
 import android.view.MenuItem;
@@ -65,7 +58,7 @@ import android.util.Log;
 import org.json.JSONException;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener ,NumberPicker.OnValueChangeListener{
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener {
     private GoogleMap mMap;
     // variables for adding location layer
     // variables for calculating and drawing a route
@@ -225,18 +218,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void changeLocale(){
-        String current_lang = Locale.getDefault().getDisplayLanguage();
-        Log.d(TAG, "current language:" + current_lang);
-        switch(current_lang) {
-            case("English"):
-                Paper.book().write("language","iw");
-                updateView((String)Paper.book().read("language"));
-                break;
-            case("עברית"):
-                Paper.book().write("language","en");
-                updateView((String)Paper.book().read("language"));
-                break;
-        }
         updateView((String)Paper.book().read("language"));
         ConnectionServer.UpdateLanguageInServer();
         Intent refresh = new Intent(this, MainActivity.class);
@@ -382,7 +363,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             warSwitch.setChecked(!warSwitch.isChecked());
         } else if (id == R.id.nav_language) {
             show();
-//            changeLocale();
         } else if (id == R.id.nav_areas) {
             Intent intent = new Intent(this, AreasActivity.class);
             startActivity(intent);
@@ -486,37 +466,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         final Dialog d = new Dialog(MainActivity.this);
         d.setTitle("NumberPicker");
         d.setContentView(R.layout.dialog);
-        Button b1 = (Button) d.findViewById(R.id.cancel_dialog_btn);
-        Button b2 = (Button) d.findViewById(R.id.ok_dialog_btn);
+        Button cancelBtn = d.findViewById(R.id.cancel_dialog_btn);
+        Button okBtn = (Button) d.findViewById(R.id.ok_dialog_btn);
         final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
-        String[] arrayString= new String[]{"Eng","Heb","Rus"};
+        String[] arrayString= new String[]{"English","עברית","Pусский"};
         np.setMinValue(0);
         np.setMaxValue(arrayString.length-1);
         np.setDisplayedValues(arrayString);
         np.setWrapSelectorWheel(false);
-        np.setOnValueChangedListener(this);
-//        b1.setOnClickListener(new OnClickListener()
-//        {
-//            @Override
-//            public void onClick(View v) {
-//                tv.setText(String.valueOf(np.getValue()));
-//                d.dismiss();
-//            }
-//        });
-//        b2.setOnClickListener(new OnClickListener()
-//        {
-//            @Override
-//            public void onClick(View v) {
-//                d.dismiss();
-//            }
-//        });
+        cancelBtn.setOnClickListener(v -> d.dismiss());
+        okBtn.setOnClickListener(v -> {
+            switch (np.getValue()){
+                case 0:
+                    Paper.book().write("language","en");
+                    updateView((String)Paper.book().read("language"));
+                    break;
+                case 1:
+                    Paper.book().write("language","iw");
+                    updateView((String)Paper.book().read("language"));
+                    break;
+                case 2:
+                    Paper.book().write("language","ru");
+                    updateView((String)Paper.book().read("language"));
+                    break;
+            }
+            d.dismiss();
+            changeLocale();
+        });
         d.show();
 
 
-    }
-
-    @Override
-    public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-        Log.i("value is",""+newVal);
     }
 }

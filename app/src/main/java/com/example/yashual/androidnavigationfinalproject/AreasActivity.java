@@ -1,6 +1,7 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 import android.app.ActivityManager;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -15,15 +16,16 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.SearchView;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
-import com.example.yashual.androidnavigationfinalproject.Service.GPSService;
 import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
 import com.example.yashual.androidnavigationfinalproject.Service.Util;
 import com.example.yashual.androidnavigationfinalproject.Service.WarService;
@@ -31,8 +33,6 @@ import com.example.yashual.androidnavigationfinalproject.Service.WarService;
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Locale;
 
 import io.paperdb.Paper;
 
@@ -237,7 +237,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         } else if (id == R.id.nav_war_mode) {
             warSwitch.setChecked(!warSwitch.isChecked());
         } else if (id == R.id.nav_language) {
-               changeLocale();
+                show();
         } else if (id == R.id.nav_areas) {
 /*            Intent intent = new Intent(this, AreasActivity.class);
             startActivity(intent);*/
@@ -257,21 +257,10 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-    private  void changeLocale(){
-        String current_lang = Locale.getDefault().getDisplayLanguage();
-        Log.d(TAG, "current language:" + current_lang);
-        switch(current_lang) {
-            case("English"):
-                Paper.book().write("language","iw");
-                updateView((String)Paper.book().read("language"));
-                break;
-            case("עברית"):
-                Paper.book().write("language","en");
-                updateView((String)Paper.book().read("language"));
-                break;
-        }
+    private void changeLocale(){
+        updateView((String)Paper.book().read("language"));
         ConnectionServer.UpdateLanguageInServer();
-        Intent refresh = new Intent(this, AreasActivity.class);
+        Intent refresh = new Intent(this, MainActivity.class);
         startActivity(refresh);
         finish();
     }
@@ -283,6 +272,42 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
             }
         }
         return false;
+    }
+    public void show()
+    {
+        final Dialog d = new Dialog(AreasActivity.this);
+        d.setTitle("NumberPicker");
+        d.setContentView(R.layout.dialog);
+        Button cancelBtn = d.findViewById(R.id.cancel_dialog_btn);
+        Button okBtn = (Button) d.findViewById(R.id.ok_dialog_btn);
+        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
+        String[] arrayString= new String[]{"English","עברית","Pусский"};
+        np.setMinValue(0);
+        np.setMaxValue(arrayString.length-1);
+        np.setDisplayedValues(arrayString);
+        np.setWrapSelectorWheel(false);
+        cancelBtn.setOnClickListener(v -> d.dismiss());
+        okBtn.setOnClickListener(v -> {
+            switch (np.getValue()){
+                case 0:
+                    Paper.book().write("language","en");
+                    updateView((String)Paper.book().read("language"));
+                    break;
+                case 1:
+                    Paper.book().write("language","iw");
+                    updateView((String)Paper.book().read("language"));
+                    break;
+                case 2:
+                    Paper.book().write("language","ru");
+                    updateView((String)Paper.book().read("language"));
+                    break;
+            }
+            d.dismiss();
+            changeLocale();
+        });
+        d.show();
+
+
     }
 
 }

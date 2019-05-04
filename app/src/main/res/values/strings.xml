@@ -25,6 +25,9 @@
     <string name="alarm_off">You have been removed from the alarms in the selected city </string>
     <string name="search_city">Search for a city </string>
     <string name="maximum_subs">It is not possible to sign to more than 10 cities</string>
+    <string name="pick_language">Pick language</string>
+    <string name="cancel">Cancel</string>
+    <string name="set">Set</string>
 
 
 </resources>

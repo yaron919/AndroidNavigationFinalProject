@@ -20,7 +20,7 @@
     <string name="alarm_off">הורדתה מההתראות בעיר שנבחרה</string>
     <string name="search_city">חפש עיר</string>
     <string name="maximum_subs">לא ניתן להירשם ליותר מ10 ערים</string>
-
-
-
+    <string name="pick_language">בחר שפה</string>
+    <string name="cancel">ביטול</string>
+    <string name="set">הגדר</string>
 </resources>
