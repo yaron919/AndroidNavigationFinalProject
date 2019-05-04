@@ -41,7 +41,8 @@ public class ConnectionServer  {
     private SafePoint originPosition;
     private static String unique_id;
     private static Geocoder geocoder;
-    private static final String URL_BASE = "http://109.226.11.202:3000";
+//    private static final String URL_BASE = "http://109.226.11.202:3000"; // TripleC
+    private static final String URL_BASE = "http://18.130.17.203:3000"; // AWS
 
 
     public ConnectionServer (Context context){
@@ -136,8 +137,37 @@ public class ConnectionServer  {
 
 }
 
+    public void closestSheltersAfterNotification(Double lat, Double lan, int redAlert) throws JSONException, IOException {
+        Log.d(TAG, "closestSheltersAfterNotification: start function");
+        String url = URL_BASE+"/operative/closestSheltersAfterNotification";
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put("lat",lat);
+        jsonObj.put("lang",lan);
+        jsonObj.put("unique_id",unique_id);
+        jsonObj.put("red_alert_id",redAlert);
+        Log.d(TAG, "closestSheltersAfterNotification: json body:"+jsonObj.toString());
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d(TAG, "onResponse: closestSheltersAfterNotification :"+ response );
+                try {
+                    JSONObject jsonRespone = response.getJSONObject("result");
+                    double lat = jsonRespone.getDouble("latitude");
+                    double lng = jsonRespone.getDouble("longitude");
+                    mainActivity.startNavigation(new LatLng(lat,lng),redAlert,45);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
 
-
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+        mQueue.add(request);
+    }
     public static void sendMyLocationToServer(Double lat, Double lan) throws JSONException, IOException {
         Log.d(TAG, "sendMyLocationToServer: start function");
         List<Address> addresses = geocoder.getFromLocation(lat, lan, 1);

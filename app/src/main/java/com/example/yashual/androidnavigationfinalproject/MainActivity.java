@@ -1,6 +1,7 @@
 package com.example.yashual.androidnavigationfinalproject;
 
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,6 +43,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import android.location.Location;
 import android.view.MenuItem;
@@ -62,7 +64,7 @@ import android.util.Log;
 import org.json.JSONException;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener{
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener ,NumberPicker.OnValueChangeListener{
     private GoogleMap mMap;
     // variables for adding location layer
     // variables for calculating and drawing a route
@@ -116,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Paper.book().write("war",false);
         else
             warSwitch.setChecked(Paper.book().read("war"));
-
         View bar = findViewById(R.id.include_bar);
         ImageButton imageButton = bar.findViewById(R.id.nav_view_btn);
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -274,17 +275,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 int time = Integer.parseInt(getIntent().getStringExtra("max_time_to_arrive_to_shelter"));
                 Log.d(TAG, "lat:"+lat+" lan:  "+lan);
                 destinationPosition = new LatLng(lat, lan);
+                Location location = getLastBestLocation();
+                originPosition = new LatLng(location.getLatitude(), location.getLongitude());
                 if(validateDistanceToClosestPoint(originPosition, destinationPosition, time)){
                     startNavigation(destinationPosition, alertId,time); // example routing NEED TO ADD DB SEARCH FOR DEST
                 }else
                     showNoSafePointMessage();
             }catch(Exception e){
                 Log.e(TAG, "checkIntent: error in function");
+                e.printStackTrace();
             }
+        }else if (getIntent().hasExtra("redAlertId")){
+            try {
+                Log.d(TAG, "checkIntent: only redAlertId");
+                Log.d(TAG, "checkIntent: extra :"+getIntent().getExtras());
+                Log.d(TAG, "checkIntent: data :"+getIntent().getDataString());
+                connectionServer.closestSheltersAfterNotification(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),
+                        Integer.parseInt(getIntent().getStringExtra("redAlertId")));
+            } catch (Exception e) {
+                e.printStackTrace();
+            } 
         }
     }
 
-    private void startNavigation(LatLng destLatLng, int alertId,int timeToDistance) {
+    public void startNavigation(LatLng destLatLng, int alertId, int timeToDistance) {
         Intent intent = new Intent(this,MapsActivity.class);
         intent.putExtra("destLng", destLatLng.longitude);
         intent.putExtra("destLat", destLatLng.latitude);
@@ -449,7 +463,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         new LatLng(mLastKnownLocation.getLatitude(),
                                                 mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
                                 connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-//                                jobSchedulerOn = Util.scheduleJob;
                             } catch (NullPointerException e) {
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                                 mMap.getUiSettings().setMyLocationButtonEnabled(false);

@@ -38,10 +38,6 @@ public class MyFirebaseInstanceService extends FirebaseMessagingService {
         }else{
             showNotification(remoteMessage.getData());
         }
-
-
-
-
     }
 
     private void showNotification(Map<String, String> data){
