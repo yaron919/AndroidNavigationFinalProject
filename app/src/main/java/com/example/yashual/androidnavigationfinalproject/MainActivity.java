@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.Dialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
@@ -380,18 +381,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (id == R.id.nav_war_mode) {
             warSwitch.setChecked(!warSwitch.isChecked());
         } else if (id == R.id.nav_language) {
-//            NumberPicker picker = new NumberPicker(this);
-//            picker.setMinValue(0);
-//            picker.setMaxValue(2);
-//            picker.setDisplayedValues( new String[] { "English", "Heb", "Russian" } );
-//            picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-//                @Override
-//                public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-//                    Log.d(TAG, "onValueChange: newVal " + newVal);
-//                    Log.d(TAG, "onValueChange: oldVal " + oldVal);
-//                }
-//            });
-            changeLocale();
+            show();
+//            changeLocale();
         } else if (id == R.id.nav_areas) {
             Intent intent = new Intent(this, AreasActivity.class);
             startActivity(intent);
@@ -489,5 +480,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+    }
+    public void show()
+    {
+        final Dialog d = new Dialog(MainActivity.this);
+        d.setTitle("NumberPicker");
+        d.setContentView(R.layout.dialog);
+        Button b1 = (Button) d.findViewById(R.id.cancel_dialog_btn);
+        Button b2 = (Button) d.findViewById(R.id.ok_dialog_btn);
+        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
+        String[] arrayString= new String[]{"Eng","Heb","Rus"};
+        np.setMinValue(0);
+        np.setMaxValue(arrayString.length-1);
+        np.setDisplayedValues(arrayString);
+        np.setWrapSelectorWheel(false);
+        np.setOnValueChangedListener(this);
+//        b1.setOnClickListener(new OnClickListener()
+//        {
+//            @Override
+//            public void onClick(View v) {
+//                tv.setText(String.valueOf(np.getValue()));
+//                d.dismiss();
+//            }
+//        });
+//        b2.setOnClickListener(new OnClickListener()
+//        {
+//            @Override
+//            public void onClick(View v) {
+//                d.dismiss();
+//            }
+//        });
+        d.show();
+
+
+    }
+
+    @Override
+    public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+        Log.i("value is",""+newVal);
     }
 }
