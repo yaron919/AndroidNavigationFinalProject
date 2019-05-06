@@ -97,6 +97,8 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
                 startService(i);
                 if (jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJobCancel(this);
+                    connectionServer.UpdateWarMode(false);
+
                 }
             }else{
                 if (isMyServiceRunning(WarService.class)){
@@ -105,6 +107,8 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
                 }
                 if (!jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJob(this);
+                    connectionServer.UpdateWarMode(true);
+
                 }
             }
         });

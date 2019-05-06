@@ -147,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startService(i);
                 if (jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJobCancel(this);
+                    connectionServer.UpdateWarMode(false);
                 }
             }else{
                 if (isMyServiceRunning(WarService.class)){
@@ -155,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 if (!jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJob(this);
+                    connectionServer.UpdateWarMode(true);
                 }
             }
         });
@@ -272,7 +274,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.d(TAG, "checkIntent: only redAlertId");
                 Log.d(TAG, "checkIntent: extra :"+getIntent().getExtras());
                 Log.d(TAG, "checkIntent: data :"+getIntent().getDataString());
-                connectionServer.closestSheltersAfterNotification(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),
+                Location location = getLastBestLocation();
+                originPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                connectionServer.closestSheltersAfterNotification(originPosition.latitude, originPosition.longitude,
                         Integer.parseInt(getIntent().getStringExtra("redAlertId")));
             } catch (Exception e) {
                 e.printStackTrace();

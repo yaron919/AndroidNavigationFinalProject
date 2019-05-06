@@ -154,7 +154,8 @@ public class ConnectionServer  {
                     JSONObject jsonRespone = response.getJSONObject("result");
                     double lat = jsonRespone.getDouble("latitude");
                     double lng = jsonRespone.getDouble("longitude");
-                    mainActivity.startNavigation(new LatLng(lat,lng),redAlert,45);
+                    int time = jsonRespone.getInt("max_time_to_arrive_to_shelter");
+                    mainActivity.startNavigation(new LatLng(lat,lng),redAlert,time);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -311,8 +312,35 @@ public class ConnectionServer  {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                    Log.d(TAG, "onResponse: getSafeLocation"+response.toString());
-                    Log.d(TAG, "onResponse: before show safe location");
+                Log.d(TAG, "onResponse: getSafeLocation"+response.toString());
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+        mQueue.add(request);
+    }
+    public static void UpdateWarMode(boolean isWarMode){
+        String url = URL_BASE+"/management/devices/update_war_mode";
+        Log.d(TAG, "UpdateWarMode: start function");
+        JSONObject jsonObj = new JSONObject();
+        try {
+            jsonObj.put("unique_id",unique_id);
+            if (isWarMode)
+                jsonObj.put("is_war_mode",1);
+            else
+                jsonObj.put("is_war_mode",0);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "UpdateWarMode: body:" + jsonObj.toString() );
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.PUT, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d(TAG, "onResponse: getSafeLocation"+response.toString());
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override
