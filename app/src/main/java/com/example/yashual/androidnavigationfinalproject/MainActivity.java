@@ -7,7 +7,6 @@ import android.Manifest;
 import android.app.ActivityManager;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -35,7 +34,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 
@@ -47,10 +45,6 @@ import android.widget.ImageButton;
 import android.widget.NumberPicker;
 import android.widget.Switch;
 import android.widget.Toast;
-
-
-import android.support.annotation.NonNull;
-
 import io.paperdb.Paper;
 
 import android.util.Log;
@@ -75,10 +69,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Button navigateButton;
     private DatabaseHelper databaseHelper;
     private List<LatLng> safeList;
-    private ImageButton languageButton;
     private Switch warSwitch;
     private DrawerLayout mDrawerLayout;
-    private boolean mSlideState = false;
     private boolean jobSchedulerOn = false;
 
     @Override
@@ -121,13 +113,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         this.connectionServer = new ConnectionServer(this);
         registerPhoneToServer();
-//        if (!GPSService.state) {
-//            Intent i = new Intent(getApplicationContext(), GPSService.class);
-//            startService(i);
-//        }
-//        languageButton.setOnClickListener(v -> {
-//            changeLocale();
-//        });
         navigateButton.setOnClickListener(v -> {
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(mLastKnownLocation));
             LatLng destLatLng = new LatLng(destSafePoint.getLat(), destSafePoint.getLan());
@@ -139,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             intent.putExtra("destLat", destLatLng.latitude);
             startActivity(intent);
         });
-        Util.scheduleJob(this);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Paper.book().write("war", isChecked);
             if (isChecked){
@@ -147,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startService(i);
                 if (jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJobCancel(this);
-                    connectionServer.UpdateWarMode(false);
+                    ConnectionServer.UpdateWarMode(false);
                 }
             }else{
                 if (isMyServiceRunning(WarService.class)){
@@ -156,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 if (!jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJob(this);
-                    connectionServer.UpdateWarMode(true);
+                    ConnectionServer.UpdateWarMode(true);
                 }
             }
         });
@@ -179,14 +163,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (unique_id == null){
             Log.d(TAG, "onCreate: unique_id: "+unique_id);
             try {
-                connectionServer.registerOnServerMyPhoneId();
+                ConnectionServer.registerOnServerMyPhoneId();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        }else if (!unique_id.equals(FirebaseInstanceId.getInstance().getToken()))
+        }else if (!FirebaseInstanceId.getInstance().getToken().equals(unique_id))
         {
             Log.d(TAG, "registerPhoneToServer: firebase instance change");
-            connectionServer.updateFirebaseInstance(unique_id);
+            ConnectionServer.updateFirebaseInstance(unique_id);
         }
     }
 
@@ -205,11 +189,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         alertDialog.setTitle(R.string.instructions_headline);
         alertDialog.setMessage(getResources().getString(R.string.instructions));
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getResources().getString(R.string.ok),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+                (dialog, which) -> dialog.dismiss());
         alertDialog.show();
         final MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.to_the_point);
         mp.start();
@@ -220,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void changeLocale(){
-        updateView((String)Paper.book().read("language"));
+        updateView(Paper.book().read("language"));
         ConnectionServer.UpdateLanguageInServer();
         Intent refresh = new Intent(this, MainActivity.class);
         startActivity(refresh);
@@ -229,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -248,39 +228,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void checkIntent(){
-        Log.d(TAG, "checkIntent: start function");
-        if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude") &&
-                getIntent().hasExtra("redAlertId") && getIntent().hasExtra("max_time_to_arrive_to_shelter")) {
-            try{
-                Log.d(TAG, "i got an intent");
-                int alertId = Integer.parseInt(getIntent().getStringExtra("redAlertId"));
-                double lat = Double.parseDouble(getIntent().getStringExtra("latitude"));
-                double lan = Double.parseDouble(getIntent().getStringExtra("longitude"));
-                int time = Integer.parseInt(getIntent().getStringExtra("max_time_to_arrive_to_shelter"));
-                Log.d(TAG, "lat:"+lat+" lan:  "+lan);
-                destinationPosition = new LatLng(lat, lan);
-                Location location = getLastBestLocation();
-                originPosition = new LatLng(location.getLatitude(), location.getLongitude());
-                if(validateDistanceToClosestPoint(originPosition, destinationPosition, time)){
-                    startNavigation(destinationPosition, alertId,time); // example routing NEED TO ADD DB SEARCH FOR DEST
-                }else
-                    showNoSafePointMessage();
-            }catch(Exception e){
-                Log.e(TAG, "checkIntent: error in function");
-                e.printStackTrace();
+        if (mLocationPermissionGranted) {
+            Log.d(TAG, "checkIntent: start function");
+            if (getIntent().hasExtra("latitude") && getIntent().hasExtra("longitude") &&
+                    getIntent().hasExtra("redAlertId") && getIntent().hasExtra("max_time_to_arrive_to_shelter")) {
+                try {
+                    Log.d(TAG, "i got an intent");
+                    int alertId = Integer.parseInt(getIntent().getStringExtra("redAlertId"));
+                    double lat = Double.parseDouble(getIntent().getStringExtra("latitude"));
+                    double lan = Double.parseDouble(getIntent().getStringExtra("longitude"));
+                    int time = Integer.parseInt(getIntent().getStringExtra("max_time_to_arrive_to_shelter"));
+                    Log.d(TAG, "lat:" + lat + " lan:  " + lan);
+                    destinationPosition = new LatLng(lat, lan);
+                    Location location = getLastBestLocation();
+                    originPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                    if (validateDistanceToClosestPoint(originPosition, destinationPosition, time)) {
+                        startNavigation(destinationPosition, alertId, time); // example routing NEED TO ADD DB SEARCH FOR DEST
+                    } else
+                        showNoSafePointMessage();
+                } catch (Exception e) {
+                    Log.e(TAG, "checkIntent: error in function");
+                    e.printStackTrace();
+                }
+            } else if (getIntent().hasExtra("redAlertId")) {
+                try {
+                    Log.d(TAG, "checkIntent: only redAlertId");
+                    Log.d(TAG, "checkIntent: extra :" + getIntent().getExtras());
+                    Log.d(TAG, "checkIntent: data :" + getIntent().getDataString());
+                    Location location = getLastBestLocation();
+                    originPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                    connectionServer.closestSheltersAfterNotification(originPosition.latitude, originPosition.longitude,
+                            Integer.parseInt(getIntent().getStringExtra("redAlertId")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        }else if (getIntent().hasExtra("redAlertId")){
-            try {
-                Log.d(TAG, "checkIntent: only redAlertId");
-                Log.d(TAG, "checkIntent: extra :"+getIntent().getExtras());
-                Log.d(TAG, "checkIntent: data :"+getIntent().getDataString());
-                Location location = getLastBestLocation();
-                originPosition = new LatLng(location.getLatitude(), location.getLongitude());
-                connectionServer.closestSheltersAfterNotification(originPosition.latitude, originPosition.longitude,
-                        Integer.parseInt(getIntent().getStringExtra("redAlertId")));
-            } catch (Exception e) {
-                e.printStackTrace();
-            } 
+        }else{
+
         }
     }
 
@@ -382,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Paper.book().write("sound","True");
             }
         }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -409,6 +393,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                Util.scheduleJob(this);
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -427,25 +412,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             if (mLocationPermissionGranted) {
                 Task locationResult = mFusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(this, new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = (Location) task.getResult();
-                            try {
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                        new LatLng(mLastKnownLocation.getLatitude(),
-                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                                connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-                            } catch (NullPointerException e) {
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                                mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                            }
-                        } else {
+                locationResult.addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Set the map's camera position to the current location of the device.
+                        mLastKnownLocation = (Location) task.getResult();
+                        try {
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(mLastKnownLocation.getLatitude(),
+                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                        } catch (NullPointerException e) {
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
                         }
+                    } else {
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                        mMap.getUiSettings().setMyLocationButtonEnabled(false);
                     }
                 });
             }
@@ -471,8 +453,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         d.setTitle("NumberPicker");
         d.setContentView(R.layout.dialog);
         Button cancelBtn = d.findViewById(R.id.cancel_dialog_btn);
-        Button okBtn = (Button) d.findViewById(R.id.ok_dialog_btn);
-        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
+        Button okBtn = d.findViewById(R.id.ok_dialog_btn);
+        final NumberPicker np = d.findViewById(R.id.numberPicker1);
         String[] arrayString= new String[]{"English","עברית","Pусский"};
         np.setMinValue(0);
         np.setMaxValue(arrayString.length-1);
@@ -483,15 +465,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             switch (np.getValue()){
                 case 0:
                     Paper.book().write("language","en");
-                    updateView((String)Paper.book().read("language"));
+                    updateView(Paper.book().read("language"));
                     break;
                 case 1:
                     Paper.book().write("language","iw");
-                    updateView((String)Paper.book().read("language"));
+                    updateView(Paper.book().read("language"));
                     break;
                 case 2:
                     Paper.book().write("language","ru");
-                    updateView((String)Paper.book().read("language"));
+                    updateView(Paper.book().read("language"));
                     break;
             }
             d.dismiss();
