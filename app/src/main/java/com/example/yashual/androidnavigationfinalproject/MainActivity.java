@@ -60,8 +60,6 @@ import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener {
     private GoogleMap mMap;
-    // variables for adding location layer
-    // variables for calculating and drawing a route
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private LatLng mDefaultLocation = new LatLng(32.113819, 34.817794);
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -75,10 +73,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Button navigateButton;
     private DatabaseHelper databaseHelper;
     private List<LatLng> safeList;
-    private ImageButton languageButton;
     private Switch warSwitch;
     private DrawerLayout mDrawerLayout;
-    private boolean mSlideState = false;
     private boolean jobSchedulerOn = false;
 
     @Override
@@ -366,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (id == R.id.nav_war_mode) {
             warSwitch.setChecked(!warSwitch.isChecked());
         } else if (id == R.id.nav_language) {
-            show();
+            popupLanguage();
         } else if (id == R.id.nav_areas) {
             Intent intent = new Intent(this, AreasActivity.class);
             startActivity(intent);
@@ -406,12 +402,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         try {
-            if (mLocationPermissionGranted) {
+            if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                mLocationPermissionGranted = true;
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                mLocationPermissionGranted = false;
                 mLastKnownLocation = null;
             }
         } catch (SecurityException e) {
@@ -465,7 +465,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
     }
-    public void show()
+    public void popupLanguage()
     {
         final Dialog d = new Dialog(MainActivity.this);
         d.setTitle("NumberPicker");
