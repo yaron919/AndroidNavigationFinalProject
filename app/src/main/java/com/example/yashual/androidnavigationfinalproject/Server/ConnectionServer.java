@@ -49,7 +49,7 @@ public class ConnectionServer  {
         mQueue = Volley.newRequestQueue(context);
         this.mainActivity = (MainActivity) context;
         mDatabaseHelper = new DatabaseHelper(context);
-        unique_id  = FirebaseInstanceId.getInstance().getToken();
+        unique_id  = Paper.book().read("unique_id",unique_id);
         geocoder = new Geocoder(context, Locale.ENGLISH);
     }
     public ConnectionServer (Context context, String def ){
@@ -66,7 +66,7 @@ public class ConnectionServer  {
         String url = URL_BASE + "/operative/closestShelters";
         JSONObject jsonObj = new JSONObject();
         try {
-            jsonObj.put("unique_id",unique_id);
+            jsonObj.put("unique_id",Paper.book().read("unique_id",unique_id));
             jsonObj.put("latitude",lat);
             jsonObj.put("longitude",lan);
         } catch (JSONException e) {
@@ -186,7 +186,8 @@ public class ConnectionServer  {
         jsonObj.put("lat",lat);
         jsonObj.put("lang",lan);
         jsonObj.put("city",cityName);
-        jsonObj.put("unique_id",unique_id);
+        if (!Paper.book().read("unique_id",unique_id).equals(null))
+            jsonObj.put("unique_id",Paper.book().read("unique_id",unique_id));
         jsonObj.put("language",language);
         jsonObj.put("is_android",1);
         Log.d(TAG, "sendMyLocationToServer: json body:"+jsonObj.toString());
@@ -204,18 +205,18 @@ public class ConnectionServer  {
         mQueue.add(request);
     }
 
-    public static void registerOnServerMyPhoneId() throws JSONException {
+    public void registerOnServerMyPhoneId() throws JSONException {
         Log.d(TAG, "registerOnServerMyPhoneId: start function");
         String url = URL_BASE+"/idle/register";
         JSONObject jsonObj = new JSONObject();
-        jsonObj.put("unique_id",unique_id);
+        jsonObj.put("unique_id",Paper.book().read("unique_id",unique_id));
         jsonObj.put("is_android",1);
         Log.d(TAG, "registerOnServerMyPhoneId: body json:"+jsonObj.toString());
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObj, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.e(TAG, "onResponse: from register on server");
-                Paper.book().write("unique_id",unique_id);
+//                Paper.book().write("unique_id",unique_id);
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override
@@ -278,7 +279,7 @@ public class ConnectionServer  {
         }
         JSONObject jsonObj = new JSONObject();
         try {
-            jsonObj.put("unique_id",unique_id);
+            jsonObj.put("unique_id",Paper.book().read("unique_id",unique_id));
             jsonObj.put("language",language);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -303,7 +304,7 @@ public class ConnectionServer  {
         Log.d(TAG, "Arrive: ");
         JSONObject jsonObj = new JSONObject();
         try {
-            jsonObj.put("unique_id",unique_id);
+            jsonObj.put("unique_id",Paper.book().read("unique_id",unique_id));
             jsonObj.put("red_alert_id",redAlertID);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -327,7 +328,7 @@ public class ConnectionServer  {
         Log.d(TAG, "UpdateWarMode: start function");
         JSONObject jsonObj = new JSONObject();
         try {
-            jsonObj.put("unique_id",unique_id);
+            jsonObj.put("unique_id",Paper.book().read("unique_id",unique_id));
             if (isWarMode)
                 jsonObj.put("is_war_mode",1);
             else
@@ -356,7 +357,7 @@ public class ConnectionServer  {
         String url = URL_BASE+"/idle/register";
         JSONObject jsonObj = new JSONObject();
         try {
-            jsonObj.put("unique_id",unique_id);
+            jsonObj.put("unique_id",FirebaseInstanceId.getInstance().getToken());
             jsonObj.put("prev_id",prev_id);
             jsonObj.put("is_android",1);
         } catch (JSONException e) {
@@ -367,7 +368,7 @@ public class ConnectionServer  {
             @Override
             public void onResponse(JSONObject response) {
                 Log.e(TAG, "onResponse: from register on server");
-                Paper.book().write("unique_id",unique_id);
+                Paper.book().write("unique_id",FirebaseInstanceId.getInstance().getToken());
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override

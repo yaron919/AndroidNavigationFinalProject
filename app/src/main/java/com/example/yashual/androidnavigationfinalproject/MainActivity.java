@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         updateView(Paper.book().read("language"));
 
         this.connectionServer = new ConnectionServer(this);
-        registerPhoneToServer();
+
         navigateButton.setOnClickListener(v -> {
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(mLastKnownLocation));
             LatLng destLatLng = new LatLng(destSafePoint.getLat(), destSafePoint.getLan());
@@ -129,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startService(i);
                 if (jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJobCancel(this);
-                    ConnectionServer.UpdateWarMode(false);
+                    connectionServer.UpdateWarMode(false);
                 }
             }else{
                 if (isMyServiceRunning(WarService.class)){
@@ -138,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 if (!jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJob(this);
-                    ConnectionServer.UpdateWarMode(true);
+                    connectionServer.UpdateWarMode(true);
                 }
             }
         });
@@ -159,16 +160,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Log.e(TAG, "onCreate: results unique_id: "+unique_id );
         if (unique_id == null){
+            unique_id = FirebaseInstanceId.getInstance().getToken();
+            Paper.book().write("unique_id",unique_id);
             Log.d(TAG, "onCreate: unique_id: "+unique_id);
             try {
-                ConnectionServer.registerOnServerMyPhoneId();
+                connectionServer.registerOnServerMyPhoneId();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }else if (!FirebaseInstanceId.getInstance().getToken().equals(unique_id))
         {
             Log.d(TAG, "registerPhoneToServer: firebase instance change");
-            ConnectionServer.updateFirebaseInstance(unique_id);
+            connectionServer.updateFirebaseInstance(unique_id);
         }
     }
 
@@ -199,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void changeLocale(){
         updateView(Paper.book().read("language"));
-        ConnectionServer.UpdateLanguageInServer();
+        connectionServer.UpdateLanguageInServer();
         Intent refresh = new Intent(this, MainActivity.class);
         startActivity(refresh);
         finish();
@@ -378,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Turn on the My Location layer and the related control on the map.
         updateLocationUI();
         // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
+//        getDeviceLocation();
 //        Location myLocation = getLastBestLocation();
         checkIntent();
 
@@ -388,13 +391,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         try {
-            if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
+            if (mLocationPermissionGranted) {
                 mLocationPermissionGranted = true;
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
                 Util.scheduleJob(this);
+                registerPhoneToServer();
+                mLastKnownLocation = getLastBestLocation();
+                connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(mLastKnownLocation.getLatitude(),
+                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -422,7 +429,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastKnownLocation.getLatitude(),
                                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                            connectionServer.getSafeLocation(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
                         } catch (NullPointerException e) {
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -439,6 +445,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void getLocationPermission() {
+        Log.d(TAG, "getLocationPermission: start function");
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -447,7 +454,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+
         }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        mLocationPermissionGranted = false;
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionGranted = true;
+                }
+            }
+        }
+        updateLocationUI();
     }
     public void popupLanguage()
     {
