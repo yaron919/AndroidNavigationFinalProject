@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startService(i);
                 if (jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJobCancel(this);
-                    connectionServer.UpdateWarMode(false);
+                    connectionServer.UpdateWarMode(true);
                 }
             }else{
                 if (isMyServiceRunning(WarService.class)){
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 if (!jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJob(this);
-                    connectionServer.UpdateWarMode(true);
+                    connectionServer.UpdateWarMode(false);
                 }
             }
         });

@@ -90,15 +90,13 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         });
         warSwitch = navigationView.getMenu().findItem(R.id.nav_war_mode).getActionView().findViewById(R.id.warSwitch);
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            GPSService.isWar = isChecked;
             Paper.book().write("war", isChecked);
             if (isChecked){
                 Intent i = new Intent(getApplicationContext(), WarService.class);
                 startService(i);
                 if (jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJobCancel(this);
-                    connectionServer.UpdateWarMode(false);
-
+                    connectionServer.UpdateWarMode(true);
                 }
             }else{
                 if (isMyServiceRunning(WarService.class)){
@@ -107,8 +105,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
                 }
                 if (!jobSchedulerOn){
                     jobSchedulerOn = Util.scheduleJob(this);
-                    connectionServer.UpdateWarMode(true);
-
+                    connectionServer.UpdateWarMode(false);
                 }
             }
         });
