@@ -199,7 +199,7 @@ public class ConnectionServer  {
         }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
+                Log.e(TAG, "onErrorResponse: sendMyLocationToServer", error);
             }
         });
         mQueue.add(request);
