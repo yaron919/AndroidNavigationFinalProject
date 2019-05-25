@@ -5,5 +5,19 @@
         <item>Rehovot@182</item>
         <item>Ashdod@271</item>
         <item>Afula@90</item>
+        <item>Tel Aviv Yafo@231</item>
+        <item>Ramat Gan@161</item>
+        <item>Ashkelon@246</item>
+        <item>Ahiezer@174</item>
+        <item>BeerSheva@291</item>
+        <item>Eilat@311</item>
+        <item>Netanya@138</item>
+        <item>Zefat@49</item>
+        <item>Metula@26</item>
+        <item>Haifa@78</item>
+        <item>Modiin@181</item>
+        <item>Holon@162</item>
+        <item>Petah Tikva@168</item>
+        <item>Tiberias@56</item>
     </string-array>
 </resources>
