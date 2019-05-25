@@ -3,10 +3,10 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
-    <color name="backGroundRed">#F1453D</color>
+    <color name="backGroundRed">#D6263B</color>
     <color name="mapboxWhite">#ffffff</color>
     <color name="mapboxBlue">#4264fb</color>
     <color name="mapboxGrayLight">#c6d2e1</color>
-    <color name="pure_red">#FF0000</color>
+    <color name="pure_red">#D6263B</color>
     <color name="gray_on">#757575</color>
 </resources>
