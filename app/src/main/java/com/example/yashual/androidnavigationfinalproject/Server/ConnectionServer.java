@@ -174,11 +174,13 @@ public class ConnectionServer  {
         List<Address> addresses = geocoder.getFromLocation(lat, lan, 1);
         String cityName = addresses.get(0).getLocality().toLowerCase();
         cityName = cityName.replaceAll("\\s+","");
-//        cityName = "hadera";
         String language = Locale.getDefault().getDisplayLanguage().toLowerCase();
         switch(language) {
             case("עברית"):
                 language = "hebrew";
+                break;
+            case("русский"):
+                language = "russian";
                 break;
         }
         String url = URL_BASE+"/idle/update";
@@ -272,9 +274,14 @@ public class ConnectionServer  {
         String url = String.format(URL_BASE+"/idle/preferred_language");
         Log.e(TAG, "UpdateLanguageInServer: url: "+url);
         String language = Locale.getDefault().getDisplayLanguage().toLowerCase();
-        switch(language) {
+        String lang = Paper.book().read("language");
+//        Log.d(TAG, "UpdateLanguageInServer: "+language);
+        switch(lang) {
             case("עברית"):
                 language = "hebrew";
+                break;
+            case("русский"):
+                language = "russian";
                 break;
         }
         JSONObject jsonObj = new JSONObject();

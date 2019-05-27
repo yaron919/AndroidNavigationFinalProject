@@ -171,29 +171,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void initialLocationManager() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        if (locationManager != null) {
-            if(locationManager != null)
-            {
-                boolean gpsIsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-                boolean networkIsEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if(locationManager != null)
+        {
+            boolean gpsIsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            boolean networkIsEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-                if(gpsIsEnabled)
-                {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, this);
-                }
-                else if(networkIsEnabled)
-                {
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 100, 0, this);
-                }
-                else
-                {
-                    //Show an error dialog that GPS is disabled.
-                }
+            if(gpsIsEnabled)
+            {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            }
+            else if(networkIsEnabled)
+            {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
             }
             else
             {
-                //Show a generic error dialog since LocationManager is null for some reason
+                //Show an error dialog that GPS is disabled.
             }
+        }
+        else
+        {
+            //Show a generic error dialog since LocationManager is null for some reason
         }
     }
 
@@ -219,7 +217,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 myLocation.getLongitude());
         distanceTextView.setText(""+getDistanceBetweenTwoPoints(myLatLng,destinationPosition));
         CameraPosition myPosition = new CameraPosition.Builder()
-                .target(myLatLng).zoom(17).bearing(90).tilt(30).build();
+                .target(myLatLng).zoom(20).bearing(90).tilt(30).build();
         mMap.animateCamera(
                 CameraUpdateFactory.newCameraPosition(myPosition));
         mMap.addMarker(new MarkerOptions().
@@ -263,9 +261,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onPause() {
         super.onPause();
-        if(timer != null){
-            timer.cancel();
-        }
+//        if(timer != null){
+//            timer.cancel();
+//        }
         if(locationManager != null)
         {
             locationManager.removeUpdates(this);
@@ -275,6 +273,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onStop() {
         super.onStop();
+        if(timer != null){
+            timer.cancel();
+        }
     }
 
     @Override
@@ -321,9 +322,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onLocationChanged(Location location) {
         LatLng locationLatLng = new LatLng(location.getLatitude(),location.getLongitude());
             int distance = getDistanceBetweenTwoPoints(locationLatLng,destinationPosition);
-            if (distance<5){
+            if (distance<8){
                 if (fromNotification)
-                    ConnectionServer.Arrive(584);
+                    ConnectionServer.Arrive(redAlertID);
                 finish();
             }else {
                 distanceTextView.setText("" + distance);
@@ -333,22 +334,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         add(destinationPosition).
                         width(5).
                         color(Color.CYAN));
+                CameraPosition myPosition = new CameraPosition.Builder()
+                        .target(locationLatLng).zoom(20).bearing(90).tilt(30).build();
+                mMap.animateCamera(
+                        CameraUpdateFactory.newCameraPosition(myPosition));
             }
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        Toast.makeText(this, "status changed", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "status changed", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        Toast.makeText(this, "provider enabled", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "provider enabled", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        Toast.makeText(this, "provider disabled", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "provider disabled", Toast.LENGTH_SHORT).show();
     }
 
     public int getDistanceBetweenTwoPoints(LatLng p1, LatLng p2) {
