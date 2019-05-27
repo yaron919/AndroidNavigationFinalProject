@@ -256,7 +256,7 @@ public class AreasActivity extends AppCompatActivity implements  NavigationView.
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
-        return true;
+        return false;
     }
     private void changeLocale(){
         updateView((String)Paper.book().read("language"));
