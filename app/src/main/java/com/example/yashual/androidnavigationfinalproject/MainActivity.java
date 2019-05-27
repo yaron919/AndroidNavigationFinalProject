@@ -243,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     destinationPosition = new LatLng(lat, lan);
                     Location location = getLastBestLocation();
                     originPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                    Log.d(TAG, "checkIntent: "+validateDistanceToClosestPoint(originPosition, destinationPosition, time));
                     if (validateDistanceToClosestPoint(originPosition, destinationPosition, time)) {
                         startNavigation(destinationPosition, alertId, time); // example routing NEED TO ADD DB SEARCH FOR DEST
                     } else

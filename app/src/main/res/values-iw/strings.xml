@@ -6,9 +6,9 @@
     <string name="title_activity_navigation_after_notification">ניווט פיקוד העורף</string>
     <string name="navigate_to_safe_place"> נווט למקום הבטוח הקרוב</string>
     <string name="language_change">החלף שפה</string>
-    <string name="instructions">שכב על הקרקע ולהגן על הראש באמצעות הידיים</string>
+    <string name="instructions">שכב על הקרקע והגן על הראש באמצעות הידיים</string>
     <string name="instructions_headline">הוראות</string>
-    <string name="ok">בסדר</string>
+    <string name="ok">אישור</string>
     <string name="seconds_remain">זמן נותר: </string>
     <string name="menu_location">מקומות מחסה</string>
     <string name="menu_war_mode">מצב מלחמה</string>

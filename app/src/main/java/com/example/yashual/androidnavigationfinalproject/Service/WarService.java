@@ -22,10 +22,8 @@ import java.io.IOException;
 
 public class WarService extends Service {
     private static final String TAG = GPSService.class.getSimpleName();
-    public static boolean state;
-    public static boolean isWar = false;
     public LocationManager mLocationManager = null;
-    private static int LOCATION_INTERVAL = 15000;
+    private static int LOCATION_INTERVAL = 0;
     private static float LOCATION_DISTANCE = 0;
     public class LocationListener implements android.location.LocationListener
     {

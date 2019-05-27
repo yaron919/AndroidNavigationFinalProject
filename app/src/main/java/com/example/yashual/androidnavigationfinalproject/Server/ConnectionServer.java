@@ -155,6 +155,7 @@ public class ConnectionServer  {
                     double lat = jsonRespone.getDouble("latitude");
                     double lng = jsonRespone.getDouble("longitude");
                     int time = jsonRespone.getInt("max_time_to_arrive_to_shelter");
+                    // TODO add check timer
                     mainActivity.startNavigation(new LatLng(lat,lng),redAlert,time);
                 } catch (JSONException e) {
                     e.printStackTrace();

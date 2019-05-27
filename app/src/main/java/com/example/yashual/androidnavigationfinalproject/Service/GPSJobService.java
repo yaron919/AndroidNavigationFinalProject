@@ -17,14 +17,14 @@ public class GPSJobService extends JobService {
     public boolean onStartJob(JobParameters params) {
         Intent service = new Intent(getApplicationContext(), GPSService.class);
         getApplicationContext().startService(service);
-        Log.d(TAG, "onStartJob: start schecduler");
+        Log.d(TAG, "onStartJob: start GPS Job Service");
         Util.scheduleJob(getApplicationContext()); // reschedule the job
         return true;
     }
 
     @Override
     public boolean onStopJob(JobParameters params) {
-        Log.d(TAG, "onStartJob: stop schecduler");
+        Log.d(TAG, "onStartJob: stop GPS Job Service");
         return true;
     }
 

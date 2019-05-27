@@ -2,13 +2,10 @@ package com.example.yashual.androidnavigationfinalproject;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -16,7 +13,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -29,9 +25,9 @@ import android.widget.Toast;
 
 import com.example.yashual.androidnavigationfinalproject.Server.ConnectionServer;
 import com.example.yashual.androidnavigationfinalproject.Service.DatabaseHelper;
+import com.example.yashual.androidnavigationfinalproject.Service.LocaleHelper;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -51,10 +47,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private GoogleMap mMap;
-    private Resources resources;
-    private MapView mapViewNavigation;
     private ImageView exitNavigationBtn;
-    private LatLng originPosition;
     private LatLng destinationPosition;
     private DatabaseHelper databaseHelper;
     private int redAlertID;
@@ -67,22 +60,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Polyline line;
     private CountDownTimer timer;
     private MediaPlayer mp ;
-    private MediaPlayer timerBeep ;
     private MediaPlayer sound2;
     private MediaPlayer sound3 ;
     private MediaPlayer sound4 ;
     private MediaPlayer sound5 ;
     private MediaPlayer sound6 ;
+    private String headline = "";
     private boolean soundOn;
-    private int count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        updateView(Paper.book().read("language"), savedInstanceState);
+        updateView(Paper.book().read("language"));
         initialLocationManager();
         soundOn = Paper.book().read("sound").equals("True");
+        headline = getResources().getString(R.string.instructions_headline);
         exitNavigationBtn = findViewById(R.id.exitNavigationBtn);
         addressTextView = findViewById(R.id.address_text_view);
         distanceTextView = findViewById(R.id.distance_text_view);
@@ -118,7 +111,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         timer = new CountDownTimer(time*1000, 1000) {
 
             public void onTick(long millisUntilFinished) {
-                count++;
                 int seconds = (int) (millisUntilFinished / 1000);
                 String timeStr = "";
                 int min = seconds / 60;
@@ -157,7 +149,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     private void showNoSafePointMessage(){
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle(R.string.instructions_headline);
+        alertDialog.setTitle(headline);
         alertDialog.setMessage(getResources().getString(R.string.instructions));
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getResources().getString(R.string.ok),
                 (dialog, which) -> dialog.dismiss());
@@ -236,16 +228,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
         }
     }
-    private void updateView(String language, Bundle savedInstanceState) {
-        Log.d(TAG, "updateView: language " + language);
+    private void updateView(String language) {
         Locale locale = new Locale(language);
         Locale.setDefault(locale);
         Configuration config = new Configuration();
-//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-//                .findFragmentById(R.id.map);
-//        mapFragment.onDestroy();
-//        mapFragment.onCreate(savedInstanceState);
         config.locale = locale;
+        getBaseContext().getResources().updateConfiguration(config,
+                getBaseContext().getResources().getDisplayMetrics());
     }
 
     @Override
@@ -256,6 +245,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+        updateView(Paper.book().read("language"));
     }
 
     @Override
