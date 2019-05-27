@@ -68,6 +68,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private CountDownTimer timer;
     private MediaPlayer mp ;
     private MediaPlayer timerBeep ;
+    private MediaPlayer sound2;
+    private MediaPlayer sound3 ;
+    private MediaPlayer sound4 ;
+    private MediaPlayer sound5 ;
+    private MediaPlayer sound6 ;
     private boolean soundOn;
     private int count = 0;
 
@@ -87,7 +92,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         mp = MediaPlayer.create(this, R.raw.to_the_point);
-        timerBeep = MediaPlayer.create(this, R.raw.timer);
+        sound2 = MediaPlayer.create(this, R.raw.two);
+        sound3 = MediaPlayer.create(this, R.raw.three);
+        sound4 = MediaPlayer.create(this, R.raw.four);
+        sound5 = MediaPlayer.create(this, R.raw.five);
+        sound6 = MediaPlayer.create(this, R.raw.six);
         exitNavigationBtn.setOnClickListener(v -> finish());
         Intent intent = getIntent();
         if (getIntent().hasExtra("destLng") && getIntent().hasExtra("destLat")){
@@ -125,11 +134,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 timeStr += sec;
                 Log.d(TAG, "onTick: sound is "+ soundOn);
                 if (soundOn){
-                    if (seconds > 15 &&count % 5 == 0)
-                    {
-                        timerBeep.start();
-                    }else if (seconds <= 15) {
-                        timerBeep.start();
+                    if (seconds > 30) {
+                        sound2.start();
+                    }else if (seconds <= 30 && seconds >20){
+                        sound4.start();
+                    }else if (seconds <= 20 && seconds >15){
+                        sound3.start();
+                    }else if (seconds <= 15 && seconds >5){
+                        sound6.start();
+                    }else if (seconds <=5){
+                        sound5.start();
                     }
                 }
                 timerTextView.setText(timeStr);
