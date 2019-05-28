@@ -23,4 +23,5 @@
     <string name="pick_language">Выбрать язык</string>
     <string name="cancel">Отменить</string>
     <string name="set">Задавать</string>
+    <string name="no_shelter">Там нет укрытия вокруг вас</string>
 </resources>

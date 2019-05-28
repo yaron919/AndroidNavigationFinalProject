@@ -165,18 +165,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public SafePoint getNearestSafeLocation(List<LatLng> list,SafePoint currentLocation){
         double shortestDistance;
         double distance;
-        SafePoint nearest_location = new SafePoint(list.get(0).latitude,list.get(0).longitude);
-        shortestDistance = getDistanceBetweenTwoPoints(currentLocation,nearest_location);
-        for(int i = 0 ; i < list.size() ; i++)
-        {
-            SafePoint safePointInList = new SafePoint(list.get(i).latitude,list.get(i).longitude);
-            distance = getDistanceBetweenTwoPoints(currentLocation,safePointInList);
-            if(distance < shortestDistance){
-                shortestDistance = distance;
-                nearest_location = safePointInList;
-            }
-        }
-        return nearest_location;
+         if (!list.isEmpty()){
+             SafePoint nearest_location = new SafePoint(list.get(0).latitude,list.get(0).longitude);
+             shortestDistance = getDistanceBetweenTwoPoints(currentLocation,nearest_location);
+             for(int i = 0 ; i < list.size() ; i++)
+             {
+                 SafePoint safePointInList = new SafePoint(list.get(i).latitude,list.get(i).longitude);
+                 distance = getDistanceBetweenTwoPoints(currentLocation,safePointInList);
+                 if(distance < shortestDistance){
+                     shortestDistance = distance;
+                     nearest_location = safePointInList;
+                 }
+             }
+             return nearest_location;
+         }
+         return null;
     }
 /*
     public Cursor getTop10(){

@@ -114,14 +114,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         navigateButton.setOnClickListener(v -> {
             SafePoint destSafePoint = databaseHelper.getNearestSafeLocation(safeList,new SafePoint(mLastKnownLocation));
-            LatLng destLatLng = new LatLng(destSafePoint.getLat(), destSafePoint.getLan());
+            if (destSafePoint == null){
+                Toast.makeText(this, R.string.no_shelter, Toast.LENGTH_SHORT).show();
+            }else{
+                LatLng destLatLng = new LatLng(destSafePoint.getLat(), destSafePoint.getLan());
 //            List<LatLng> points = new ArrayList<>();
-            Log.d(TAG, "onCreate: lat"+destLatLng.latitude+" lan:"+destLatLng.longitude);
+                Log.d(TAG, "onCreate: lat"+destLatLng.latitude+" lan:"+destLatLng.longitude);
 //            points.add(destLatLng);
-            Intent intent = new Intent(this, MapsActivity.class);
-            intent.putExtra("destLng", destLatLng.longitude);
-            intent.putExtra("destLat", destLatLng.latitude);
-            startActivity(intent);
+                Intent intent = new Intent(this, MapsActivity.class);
+                intent.putExtra("destLng", destLatLng.longitude);
+                intent.putExtra("destLat", destLatLng.latitude);
+                startActivity(intent);
+            }
         });
         warSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Paper.book().write("war", isChecked);

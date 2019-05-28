@@ -23,4 +23,5 @@
     <string name="pick_language">בחר שפה</string>
     <string name="cancel">ביטול</string>
     <string name="set">הגדר</string>
+    <string name="no_shelter">אין מחסה בסביבתך</string>
 </resources>

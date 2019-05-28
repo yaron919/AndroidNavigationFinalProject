@@ -28,6 +28,7 @@
     <string name="pick_language">Pick language</string>
     <string name="cancel">Cancel</string>
     <string name="set">Set</string>
+    <string name="no_shelter">There is no shelter around you</string>
 
 
 </resources>
