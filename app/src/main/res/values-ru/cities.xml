@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="cities">
-        <item>חדרה@107</item>
-        <item>רחובות@182</item>
-        <item>אשדוד@271</item>
-        <item>עפולה@90</item>
-        <item>תל-אביב יפו@231</item>
-        <item>רמת גן@161</item>
-        <item>אשקלון@246</item>
-        <item>אחיעזר@174</item>
-        <item>באר-שבע@291</item>
-        <item>אילת@311</item>
-        <item>נתניה@138</item>
-        <item>צפת@49</item>
-        <item>מטולה@26</item>
-        <item>חיפה@78</item>
-        <item>מודיעין@181</item>
-        <item>חולון@162</item>
-        <item>פתח-תקווה@168</item>
-        <item>טבריה@56</item>
+        <item>Хадера@107</item>
+        <item>Реховот@182</item>
+        <item>Ашдод@271</item>
+        <item>Афула@90</item>
+        <item>Тел-Авив Яфо@231</item>
+        <item>Рамат Ган@161</item>
+        <item>Ашкелон@246</item>
+        <item>Ахиезер@174</item>
+        <item>Беер-Шева@291</item>
+        <item>Еилат@311</item>
+        <item>Натаня@138</item>
+        <item>Зфат@49</item>
+        <item>Метула@26</item>
+        <item>Хиафа@78</item>
+        <item>Модиин@181</item>
+        <item>Холон@162</item>
+        <item>Петах-Тиква@168</item>
+        <item>Твериа@56</item>
     </string-array>
 </resources>
